@@ -1,7 +1,7 @@
-/* Lumen service worker — versione 1.0.0
+/* Lumen service worker — versione 1.0.1
    Quando aggiorni i file del sito, cambia il numero di versione qui sotto:
    così telefono e computer scaricano la nuova versione. */
-const VERSION = "lumen-1.0.0";
+const VERSION = "lumen-1.0.1";
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'vendor/jszip.min.js', 'fonts/is-400-italic.woff2', 'fonts/is-400.woff2', 'fonts/pjs-300.woff2', 'fonts/pjs-400.woff2', 'fonts/pjs-500.woff2', 'fonts/pjs-600.woff2', 'fonts/pjs-700.woff2', 'fonts/pjs-800.woff2', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
 self.addEventListener("install", e => {

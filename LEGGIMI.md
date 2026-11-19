@@ -33,7 +33,7 @@ Usa sempre l'app installata, non la pagina nel browser: così iOS non cancella i
 
 ## Portare foto e schede sul Mac
 
-1. Sul telefono: menu → **Backup e Mac** → **Esporta backup (ZIP)** → scegli **AirDrop** e il tuo Mac.
+1. Sul telefono: menu → **Backup e Mac** → **Esporta backup** (file .lumen) → scegli **AirDrop** e il tuo Mac.
 2. Sul Mac: apri Lumen → menu → **Backup e Mac** → **Importa backup e unisci** → scegli il file.
 
 "Unisci" aggiunge le novità e tiene la versione più recente di ogni scheda. Il file di backup contiene dati sanitari: spostalo solo con AirDrop o cavo e non caricarlo su cloud o email.

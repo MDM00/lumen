@@ -648,7 +648,7 @@ const age = dob => { if(!dob) return null; const d=new Date(dob), n=new Date(); 
 const parseTags = s => [...new Set(String(s||"").split(/[,#]/).map(t=>t.trim().toLowerCase()).filter(Boolean))].slice(0,12);
 const src = ph => blobURL(ph.assetId) || "";
 let toastT;
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2600); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),Math.max(2600,String(msg).length*65)); }
 function setStatus(kind,text){ const s=$("#status"); s.className="status "+(kind||""); $("#status-t").textContent=text; if(s.classList.contains("rv")) s.classList.add("in"); }
 function showNotice(text){ const n=$("#notice"); n.textContent=text; n.classList.remove("hidden"); }
 
@@ -2445,22 +2445,28 @@ async function exportBackup(){
     for(const id of ids){ const b=await LDB.getBlob(id); if(b){ const n=`foto/${id}.${extOf(b.type)}`; map[id]=n; z.file(n, b); } }
     z.file("dati.json", JSON.stringify({app:"lumen", formato:1, esportatoIl:new Date().toISOString(), dispositivo:navigator.userAgent, docs, foto:map}, null, 1));
     const blob = await z.generateAsync({type:"blob", compression:"STORE"});
-    const d=new Date(); const name=`lumen-backup-${todayISO()}_${pad2(d.getHours())}${pad2(d.getMinutes())}.zip`;
+    const d=new Date(); const name=`lumen-backup-${todayISO()}_${pad2(d.getHours())}${pad2(d.getMinutes())}.lumen`;
     const ok = await shareOrDownload(blob, name);
     if(ok){ LS.set("lastBackup", new Date().toISOString()); toast("Backup pronto"); render(); }
   }catch(e){ console.error(e); toast("Backup non riuscito"); }
 }
 async function importBackup(file, replace){
   try{
-    const z = await JSZip.loadAsync(file);
-    const meta = JSON.parse(await z.file("dati.json").async("string"));
-    if(meta.app!=="lumen") throw new Error("non è un backup di Lumen");
+    let z;
+    try{ z = await JSZip.loadAsync(file); }
+    catch(e){ throw new Error("Il file non è uno ZIP leggibile. Se il Mac l'ha estratto in una cartella, esporta di nuovo il backup dal telefono e scegli il file \".lumen\"."); }
+    // dati.json anche dentro una sottocartella (ZIP ricompresso dal Mac)
+    const entry = Object.values(z.files).find(f=>!f.dir && /(^|\/)dati\.json$/.test(f.name) && !f.name.startsWith("__MACOSX"));
+    if(!entry) throw new Error("Nel file non c'è un backup di Lumen (manca dati.json).");
+    const base = entry.name.slice(0, entry.name.length-"dati.json".length);
+    const meta = JSON.parse(await entry.async("string"));
+    if(meta.app!=="lumen") throw new Error("Il file non è un backup di Lumen.");
     const blobs=[];
-    for(const [id,path] of Object.entries(meta.foto||{})){ const f=z.file(path); if(f){ const ext=path.split(".").pop(); blobs.push([id, new Blob([await f.async("arraybuffer")], {type: ext==="png"?"image/png":ext==="webp"?"image/webp":ext==="gif"?"image/gif":"image/jpeg"})]); } }
+    for(const [id,path] of Object.entries(meta.foto||{})){ const f=z.file(base+path) || z.file(path); if(f){ const ext=path.split(".").pop(); blobs.push([id, new Blob([await f.async("arraybuffer")], {type: ext==="png"?"image/png":ext==="webp"?"image/webp":ext==="gif"?"image/gif":"image/jpeg"})]); } }
     const r = await LDB.importAll(meta.docs, blobs, replace);
     LS.set("lastImport", new Date().toISOString());
     closeSheet(); toast(`Importati ${r.nDocs} elementi e ${r.nBlobs} foto`);
-  }catch(e){ console.error(e); toast("Il file non è un backup valido di Lumen"); }
+  }catch(e){ console.error(e); toast((e && e.message && /Lumen|ZIP|backup/.test(e.message)) ? e.message : "Importazione non riuscita: "+(e && e.message || "errore sconosciuto")); }
 }
 async function storageInfo(){
   let est=null, persisted=null;
@@ -2481,7 +2487,7 @@ async function backupSheet(){
       <div><b>Archivio protetto</b>${persisted?"Sì":"No"}</div>
     </div>
     <div style="display:grid;gap:.6rem">
-      <button class="btn" data-bk="export">Esporta backup (ZIP)<span class="ic">${ICON.arrow}</span></button>
+      <button class="btn" data-bk="export">Esporta backup<span class="ic">${ICON.arrow}</span></button>
       <button class="btn light" data-bk="import">Importa backup e unisci<span class="ic">${ICON.lib}</span></button>
       <button class="btn light plain" data-bk="replace" style="color:var(--danger)">Importa e sostituisci tutto</button>
     </div>
@@ -2490,7 +2496,7 @@ async function backupSheet(){
     ${!persisted?`<button class="chip" data-bk="persist" style="margin-top:1rem">Chiedi di proteggere l'archivio</button>`:""}`, b=>{
       b.querySelector("[data-x]").onclick=closeSheet;
       b.querySelector("[data-bk=export]").onclick=exportBackup;
-      const pick=replace=>{ const i=document.createElement("input"); i.type="file"; i.accept=".zip,application/zip"; i.onchange=async()=>{ const f=i.files[0]; if(!f) return;
+      const pick=replace=>{ const i=document.createElement("input"); i.type="file"; i.onchange=async()=>{ const f=i.files[0]; if(!f) return;
         if(replace && !(await confirmSheet({title:"Sostituire tutto?", text:"L'archivio di questo dispositivo verrà cancellato e rimpiazzato dal backup. Non si può annullare.", ok:"Sostituisci"}))) return;
         toast("Importazione in corso…"); importBackup(f, replace); }; i.click(); };
       b.querySelector("[data-bk=import]").onclick=()=>pick(false);
