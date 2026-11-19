@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lumen</title>
+<style>
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:300;font-display:swap;src:url(fonts/pjs-300.woff2) format('woff2')}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/pjs-400.woff2) format('woff2')}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/pjs-500.woff2) format('woff2')}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/pjs-600.woff2) format('woff2')}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/pjs-700.woff2) format('woff2')}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:800;font-display:swap;src:url(fonts/pjs-800.woff2) format('woff2')}
+@font-face{font-family:'Instrument Serif';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/is-400.woff2) format('woff2')}
+@font-face{font-family:'Instrument Serif';font-style:italic;font-weight:400;font-display:swap;src:url(fonts/is-400-italic.woff2) format('woff2')}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F3F4F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lumen">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#F3F4F6;
+  --bg2:#ECEEF1;
+  --ink:#0E1116;
+  --ink2:#4B5361;
+  --ink3:#8A919C;
+  --core:#FFFFFF;
+  --shell:rgba(14,17,22,.035);
+  --hair:rgba(14,17,22,.06);
+  --hair2:rgba(14,17,22,.10);
+  --accent:#2F6B5E;
+  --accent-soft:rgba(47,107,94,.10);
+  --danger:#A4372F;
+  --danger-soft:rgba(164,55,47,.09);
+  --r:2rem;
+  --ease:cubic-bezier(.32,.72,0,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --shadow:0 30px 60px -30px rgba(14,17,22,.12), 0 8px 24px -12px rgba(14,17,22,.06);
+  --font:'Plus Jakarta Sans', system-ui, sans-serif;
+  --serif:'Instrument Serif', Georgia, serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{overflow-x:hidden}
+body{
+  font-family:var(--font);color:var(--ink);background:var(--bg);
+  min-height:100dvh;line-height:1.55;font-size:15px;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgba(255,255,255,.95), transparent 60%),
+    radial-gradient(40rem 30rem at -10% 30%, rgba(47,107,94,.06), transparent 60%);
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+img{display:block;max-width:100%}
+.hidden{display:none!important}
+main{position:relative;z-index:1}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 2rem}
+
+/* ---------- Island nav ---------- */
+.nav{
+  position:fixed;top:calc(1.25rem + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+  z-index:30;display:flex;align-items:center;gap:.35rem;
+  padding:.4rem .4rem .4rem 1.1rem;border-radius:999px;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);
+  box-shadow:0 0 0 1px var(--hair), 0 12px 40px -16px rgba(14,17,22,.18);
+  width:max-content;max-width:calc(100% - 2rem);
+}
+.brand{display:flex;align-items:center;gap:.55rem;font-weight:700;letter-spacing:-.02em;font-size:15px;margin-right:.6rem;white-space:nowrap}
+.brand-dot{width:22px;height:22px;border-radius:50%;background:conic-gradient(from 200deg,#0E1116,#2F6B5E,#C9D3D0,#0E1116);box-shadow:inset 0 0 0 4px rgba(255,255,255,.85)}
+.nav-link{padding:.55rem .95rem;border-radius:999px;font-size:13.5px;font-weight:500;color:var(--ink2);transition:background .5s var(--ease),color .5s var(--ease)}
+.nav-link:hover,.nav-link.on{background:var(--shell);color:var(--ink)}
+.burger{position:relative;width:40px;height:40px;border-radius:50%;background:var(--ink);flex:none;transition:transform .5s var(--ease)}
+.burger:active{transform:scale(.94)}
+.burger span{position:absolute;left:12px;right:12px;height:1.5px;background:#fff;border-radius:2px;transition:transform .6s var(--ease),opacity .4s var(--ease)}
+.burger span:nth-child(1){top:15px}
+.burger span:nth-child(2){top:23px}
+body.menu-open .burger span:nth-child(1){transform:translateY(4px) rotate(45deg)}
+body.menu-open .burger span:nth-child(2){transform:translateY(-4px) rotate(-45deg)}
+
+.menu{
+  position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;justify-content:center;
+  padding:6rem 2rem 3rem;background:rgba(243,244,246,.82);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  opacity:0;pointer-events:none;transition:opacity .7s var(--ease);
+}
+body.menu-open .menu{opacity:1;pointer-events:auto}
+.menu ul{list-style:none;max-width:1180px;margin:0 auto;width:100%}
+.menu li{overflow:hidden}
+.menu a{
+  display:flex;align-items:baseline;gap:1rem;padding:.35rem 0;
+  font-size:clamp(2.4rem,7vw,5rem);font-weight:700;letter-spacing:-.045em;line-height:1.05;color:var(--ink);text-decoration:none;
+  transform:translateY(3rem);opacity:0;transition:transform .9s var(--ease),opacity .9s var(--ease);
+}
+.menu a small{font-size:12px;font-weight:500;letter-spacing:.2em;color:var(--ink3);text-transform:uppercase}
+.menu a em{font-family:var(--serif);font-weight:400;font-style:italic;letter-spacing:-.02em}
+body.menu-open .menu a{transform:none;opacity:1}
+body.menu-open .menu li:nth-child(1) a{transition-delay:.10s}
+body.menu-open .menu li:nth-child(2) a{transition-delay:.15s}
+body.menu-open .menu li:nth-child(3) a{transition-delay:.20s}
+body.menu-open .menu li:nth-child(4) a{transition-delay:.25s}
+body.menu-open .menu li:nth-child(5) a{transition-delay:.30s}
+body.menu-open .menu li:nth-child(6) a{transition-delay:.35s}
+.menu-foot{max-width:1180px;margin:3rem auto 0;width:100%;color:var(--ink3);font-size:13px}
+
+/* ---------- Type ---------- */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.5rem;border-radius:999px;padding:.3rem .8rem;
+  font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink2);
+  background:rgba(255,255,255,.7);box-shadow:0 0 0 1px var(--hair);
+}
+.eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--accent);display:block}
+h1.display{font-size:clamp(2.8rem,7.5vw,6.2rem);line-height:.98;letter-spacing:-.055em;font-weight:800;margin:1.4rem 0 1.4rem}
+h1.display em,.h2 em{font-family:var(--serif);font-weight:400;font-style:italic;letter-spacing:-.025em}
+.h2{font-size:clamp(1.9rem,4vw,3rem);line-height:1.02;letter-spacing:-.045em;font-weight:700}
+.lead{font-size:clamp(1rem,1.4vw,1.15rem);color:var(--ink2);max-width:36rem;line-height:1.6}
+.muted{color:var(--ink3)}
+.small{font-size:12.5px}
+
+/* ---------- Double bezel ---------- */
+.bezel{padding:.4rem;border-radius:var(--r);background:var(--shell);box-shadow:0 0 0 1px var(--hair)}
+.core{
+  border-radius:calc(var(--r) - .4rem);background:var(--core);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.9), var(--shadow);
+  overflow:hidden;position:relative;
+}
+.pad{padding:1.75rem}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:.75rem;border-radius:999px;
+  padding:.5rem .5rem .5rem 1.4rem;font-weight:600;font-size:14px;letter-spacing:-.01em;
+  background:var(--ink);color:#fff;transition:transform .5s var(--ease),background .5s var(--ease),box-shadow .5s var(--ease);
+  white-space:nowrap;
+}
+.btn:active{transform:scale(.98)}
+.btn .ic{
+  width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,.14);
+  display:flex;align-items:center;justify-content:center;transition:transform .6s var(--ease);
+}
+.btn:hover .ic{transform:translate(3px,-1px) scale(1.05)}
+.btn.light{background:#fff;color:var(--ink);box-shadow:0 0 0 1px var(--hair2)}
+.btn.light .ic{background:var(--shell)}
+.btn.danger{background:var(--danger)}
+.btn.plain{padding:.75rem 1.3rem}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.chip{
+  display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .9rem;border-radius:999px;font-size:12.5px;font-weight:500;
+  background:#fff;box-shadow:0 0 0 1px var(--hair2);color:var(--ink2);transition:all .5s var(--ease);white-space:nowrap;
+}
+.chip:hover{color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;box-shadow:none}
+.chip .n{font-size:11px;opacity:.55}
+.tag{display:inline-block;padding:.18rem .6rem;border-radius:999px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent)}
+.iconbtn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 0 0 1px var(--hair2);transition:transform .5s var(--ease)}
+.iconbtn:active{transform:scale(.94)}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Sections ---------- */
+section{padding:7rem 0}
+.hero{padding-top:10rem;padding-bottom:4rem}
+.hero-row{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:2.2rem}
+
+/* bento */
+.bento>*,.plist>*,.grid>*{min-width:0}
+.bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:1.1rem;margin-top:3.5rem}
+.b-8{grid-column:span 8}.b-4{grid-column:span 4}.b-6{grid-column:span 6}.b-12{grid-column:span 12}
+.stat-num{font-size:clamp(3rem,6vw,4.8rem);font-weight:800;letter-spacing:-.06em;line-height:1}
+.stat-lab{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.recent{display:flex;gap:.6rem;margin-top:1.4rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.2rem}
+.recent::-webkit-scrollbar{display:none}
+.recent .th{flex:none;width:96px;height:96px;border-radius:1.1rem;overflow:hidden;background:var(--bg2)}
+.recent .th img{width:100%;height:100%;object-fit:cover}
+
+/* search */
+.searchbar{display:flex;align-items:center;gap:.75rem;padding:.4rem .4rem .4rem 1.3rem}
+.searchbar input{flex:1;border:0;outline:0;background:none;font-size:16px;padding:.85rem 0;min-width:0}
+.searchbar input::placeholder{color:var(--ink3)}
+
+/* patients */
+.plist{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:2rem}
+.pcard{text-align:left;display:block;width:100%;transition:transform .7s var(--ease)}
+.pcard:hover{transform:translateY(-4px)}
+.pcard .cover{height:170px;background:var(--bg2);display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:3px;overflow:hidden}
+.pcard .cover img{width:100%;height:100%;min-height:0;object-fit:cover}
+.pcard .cover img:only-child{grid-column:span 2}
+.pcard .cover>*:first-child{grid-row:span 2}
+.pcard .cover.empty{display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+.pcard .meta{padding:1.1rem 1.25rem 1.3rem}
+.pcard .name{font-weight:700;letter-spacing:-.02em;font-size:17px}
+.pcard .sub{font-size:12.5px;color:var(--ink3);margin-top:.15rem;display:flex;gap:.6rem;flex-wrap:wrap}
+.empty-state{padding:3.5rem 2rem;text-align:center}
+.empty-state .h2{font-size:clamp(1.6rem,3vw,2.2rem)}
+
+/* patient view */
+.p-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem}
+.p-actions{display:flex;flex-wrap:wrap;gap:.6rem}
+.back{display:inline-flex;align-items:center;gap:.4rem;font-size:13px;color:var(--ink2);font-weight:500;margin-bottom:1.5rem}
+.infos{display:flex;gap:2rem;flex-wrap:wrap;margin-top:1.3rem}
+.infos div{font-size:13px}
+.infos b{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:.15rem}
+.folders{display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;margin:2.2rem 0 1.4rem;padding:.2rem}
+.folders::-webkit-scrollbar{display:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem}
+.ph{position:relative;text-align:left;display:block;width:100%;transition:transform .7s var(--ease)}
+.ph:hover{transform:translateY(-3px)}
+.ph .img{aspect-ratio:1/1;background:var(--bg2);overflow:hidden}
+.ph .img img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ease)}
+.ph:hover .img img{transform:scale(1.04)}
+.ph .cap{padding:.8rem 1rem 1rem}
+.ph .cap .d{font-size:12px;color:var(--ink3)}
+.ph .cap .a{font-weight:600;font-size:14px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph .tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.45rem}
+.ph .sel{
+  position:absolute;top:1.1rem;right:1.1rem;width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.85);box-shadow:0 0 0 1px var(--hair2);display:none;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;z-index:2;backdrop-filter:blur(8px);
+}
+.selecting .ph .sel{display:flex}
+.ph.picked .sel{background:var(--ink);color:#fff}
+.ph.picked .core{box-shadow:0 0 0 2px var(--ink), var(--shadow)}
+
+/* ---------- Sheets / dialogs ---------- */
+.scrim{position:fixed;inset:0;z-index:46;background:rgba(14,17,22,.28);opacity:0;pointer-events:none;transition:opacity .6s var(--ease)}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;z-index:47;left:50%;bottom:0;width:min(640px,100%);max-height:92dvh;
+  transform:translate(-50%,105%);transition:transform .8s var(--ease);
+  padding:.45rem .45rem calc(.45rem + env(safe-area-inset-bottom));
+}
+.sheet{visibility:hidden;transition:transform .8s var(--ease),visibility 0s linear .8s}
+.sheet.on{transform:translate(-50%,0);visibility:visible;transition:transform .8s var(--ease),visibility 0s}
+.sheet>.bezel{border-radius:2.2rem 2.2rem 1.6rem 1.6rem;background:rgba(255,255,255,.45);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+.sheet .core{border-radius:1.8rem 1.8rem 1.2rem 1.2rem;max-height:calc(92dvh - 1.5rem);overflow:auto}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.4rem}
+.sheet-h h3{font-size:1.5rem;letter-spacing:-.04em;font-weight:700}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin:0 0 .45rem .2rem}
+.input{
+  width:100%;padding:.9rem 1.1rem;border-radius:1.1rem;border:0;outline:0;background:var(--bg);font-size:16px;
+  box-shadow:inset 0 0 0 1px var(--hair);transition:box-shadow .4s var(--ease),background .4s var(--ease);
+}
+.input:focus{background:#fff;box-shadow:inset 0 0 0 1.5px var(--ink)}
+textarea.input{min-height:90px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.check{display:flex;align-items:flex-start;gap:.7rem;font-size:13.5px;color:var(--ink2);padding:.9rem 1.1rem;border-radius:1.1rem;background:var(--bg)}
+.check input{margin-top:.2rem;width:18px;height:18px;accent-color:var(--ink)}
+.sheet-f{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1.6rem}
+.pick-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.pick{
+  display:flex;flex-direction:column;gap:.9rem;align-items:flex-start;padding:1.3rem;border-radius:1.4rem;
+  background:var(--bg);box-shadow:inset 0 0 0 1px var(--hair);text-align:left;transition:transform .5s var(--ease),background .5s var(--ease);
+}
+.pick:hover{background:#fff}
+.pick:active{transform:scale(.98)}
+.pick b{font-size:15px;letter-spacing:-.02em}
+.pick span{font-size:12.5px;color:var(--ink3)}
+.pick .ic{width:42px;height:42px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px var(--hair2)}
+.previews{display:flex;gap:.5rem;overflow-x:auto;margin:1rem 0 1.2rem;scrollbar-width:none}
+.previews img{width:84px;height:84px;object-fit:cover;border-radius:1rem;flex:none}
+.prog{height:4px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:1rem}
+.prog i{display:block;height:100%;width:0;background:var(--ink);transition:width .5s var(--ease)}
+
+/* viewer */
+.viewer{position:fixed;inset:0;z-index:45;background:#0B0D10;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .6s var(--ease);color:#fff}
+.viewer.on{opacity:1;pointer-events:auto}
+.v-top{display:flex;justify-content:space-between;align-items:center;padding:calc(1rem + env(safe-area-inset-top)) 1.2rem 1rem;gap:1rem}
+.v-top .iconbtn{background:rgba(255,255,255,.08);box-shadow:0 0 0 1px rgba(255,255,255,.12);color:#fff}
+.v-img{flex:1;display:flex;align-items:center;justify-content:center;padding:0 1rem;min-height:0}
+.v-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:1rem}
+.v-info{padding:1.2rem 1.4rem calc(1.4rem + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-end}
+.v-info .t{font-weight:600;font-size:16px;letter-spacing:-.01em}
+.v-info .s{font-size:12.5px;color:rgba(255,255,255,.6);margin-top:.15rem;max-width:40rem}
+.v-info .tag{background:rgba(255,255,255,.12);color:#fff}
+.v-nav{display:flex;gap:.5rem}
+
+/* compare */
+.cmp-stage{position:relative;flex:1;margin:0 1rem;min-height:0;border-radius:1.4rem;overflow:hidden;background:#000;touch-action:none;user-select:none}
+.cmp-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cmp-stage .after{clip-path:inset(0 0 0 var(--x,50%))}
+.cmp-line{position:absolute;top:0;bottom:0;left:var(--x,50%);width:2px;margin-left:-1px;background:#fff;pointer-events:none}
+.cmp-knob{position:absolute;top:50%;left:var(--x,50%);width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.4);pointer-events:none}
+.cmp-lab{position:absolute;top:1rem;padding:.35rem .8rem;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);pointer-events:none}
+.cmp-lab.l{left:1rem}.cmp-lab.r{right:1rem}
+.cmp-side{display:none;flex:1;margin:0 1rem;gap:.6rem;min-height:0}
+.cmp-side figure{flex:1;position:relative;border-radius:1.2rem;overflow:hidden;background:#000}
+.cmp-side img{width:100%;height:100%;object-fit:contain}
+.viewer.side .cmp-stage{display:none}
+.viewer.side .cmp-side{display:flex}
+.seg{display:inline-flex;padding:.25rem;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.seg button{padding:.5rem 1rem;border-radius:999px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.7);transition:all .5s var(--ease)}
+.seg button.on{background:#fff;color:var(--ink)}
+
+/* Studio */
+.bento>.bezel{display:flex}
+.bento>.bezel>.core{flex:1}
+body.blind-mode .nav{display:none}
+#blind{z-index:44;overflow:auto}
+#blind .input{background:var(--bg)}
+
+/* Questionario */
+.qbadge{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .7rem;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.04em}
+.qbadge i{width:6px;height:6px;border-radius:50%;background:currentColor;display:block}
+.qbadge.ok{background:var(--accent-soft);color:var(--accent)}
+.qbadge.todo{background:var(--danger-soft);color:var(--danger)}
+.qbadge.na{background:var(--bg2);color:var(--ink3)}
+.p-head>div{min-width:0;max-width:100%}
+.qbox{margin-top:1.6rem;display:inline-flex;flex-wrap:wrap;align-items:center;gap:.8rem 1rem;padding:.9rem .9rem .9rem 1.2rem;border-radius:1.4rem;background:rgba(255,255,255,.7);box-shadow:0 0 0 1px var(--hair);max-width:100%}
+.qbox .ql{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+
+/* Agenda */
+.ag-layout{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:1.1rem;margin-top:2.6rem;align-items:start}
+.ag-layout>*{min-width:0}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.3rem}
+.cal-head .m{font-size:1.6rem;font-weight:700;letter-spacing:-.04em;text-transform:capitalize}
+.cal-head .m em{font-family:var(--serif);font-weight:400;font-style:italic;color:var(--ink3)}
+.cal-nav{display:flex;gap:.4rem}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.35rem}
+.cal .dow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:600;text-align:center;padding:.3rem 0 .5rem}
+.day{aspect-ratio:1/1;border-radius:1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;font-size:14px;font-weight:500;transition:background .5s var(--ease),color .5s var(--ease),transform .5s var(--ease);position:relative}
+.day:hover{background:var(--bg)}
+.day:active{transform:scale(.95)}
+.day.out{color:#C3C7CE}
+.day.today{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.day.sel{background:var(--ink);color:#fff}
+.day .dots{display:flex;gap:3px;height:5px}
+.day .dots i{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.day.sel .dots i{background:#fff}
+.day .dots b{font-size:9px;line-height:5px;font-weight:700}
+.ap-list{display:grid;gap:.7rem}
+.ap{display:flex;gap:1rem;align-items:flex-start;width:100%;text-align:left;padding:1rem 1.1rem;border-radius:1.3rem;background:var(--bg);transition:background .5s var(--ease),transform .5s var(--ease)}
+.ap:hover{background:#fff;box-shadow:0 0 0 1px var(--hair2)}
+.ap:active{transform:scale(.99)}
+.ap .tm{flex:none;width:3.4rem;font-weight:700;letter-spacing:-.02em;font-size:15px}
+.ap .tm small{display:block;font-size:11px;color:var(--ink3);font-weight:500}
+.ap .bd{flex:1;min-width:0}
+.ap .nm{font-weight:600;font-size:15px;letter-spacing:-.01em;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.ap .rs{font-size:13px;color:var(--ink2);margin-top:.1rem}
+.ap .lk{display:inline-flex;align-items:center;gap:.35rem;margin-top:.55rem;font-size:12px;font-weight:600;color:var(--accent);padding:.3rem .7rem;border-radius:999px;background:var(--accent-soft)}
+.ap.done{opacity:.55}
+.ap.cancel .nm{text-decoration:line-through;color:var(--ink3)}
+.st{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.15rem .5rem;border-radius:999px;background:var(--bg2);color:var(--ink3)}
+.link-hint{margin-top:.5rem;font-size:12.5px;display:flex;align-items:center;gap:.4rem;padding:.55rem .9rem;border-radius:999px;width:max-content;max-width:100%}
+.link-hint.ok{background:var(--accent-soft);color:var(--accent)}
+.link-hint.no{background:var(--bg);color:var(--ink3)}
+.p-ap{margin-top:3.5rem}
+.day-title{font-size:1.25rem;font-weight:700;letter-spacing:-.03em;text-transform:capitalize}
+@media (max-width:900px){ .ag-layout{grid-template-columns:1fr} }
+@media (max-width:767px){ .day{border-radius:.8rem;font-size:13px} .cal{gap:.2rem} .cal-head .m{font-size:1.3rem} }
+
+/* AI */
+.ai-out{font-size:14.5px;color:var(--ink2);line-height:1.65;margin-top:1.2rem}
+.ai-out h4{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);font-weight:700;margin:1.5rem 0 .5rem}
+.ai-out h4:first-child{margin-top:0}
+.ai-out ul{padding-left:1.1rem;display:grid;gap:.3rem}
+.ai-out p{margin:.4rem 0}
+.ai-out b{color:var(--ink);font-weight:600}
+.ai-thumbs{display:flex;gap:.5rem;margin-top:.2rem}
+.ai-thumbs img{width:64px;height:64px;object-fit:cover;border-radius:.9rem}
+.ai-meta{font-size:12px;color:var(--ink3);margin-top:.9rem}
+.ai-warn{margin-top:1.4rem;padding:.85rem 1.1rem;border-radius:1.1rem;background:var(--bg);font-size:12.5px;color:var(--ink3)}
+.thinking{display:inline-flex;align-items:center;gap:.6rem;color:var(--ink3);font-size:14px}
+.thinking i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+.btn.ai{background:linear-gradient(135deg,#0E1116,#2F6B5E)}
+.v-ai{background:#fff!important;color:var(--ink)!important;box-shadow:none!important}
+
+/* toast + status */
+.toast{
+  position:fixed;left:50%;bottom:calc(1.5rem + env(safe-area-inset-bottom));z-index:60;transform:translate(-50%,2rem);opacity:0;
+  padding:.85rem 1.3rem;border-radius:999px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;
+  transition:transform .6s var(--ease),opacity .6s var(--ease);pointer-events:none;max-width:calc(100% - 2rem);text-align:center;
+}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.status{margin-top:1.2rem;font-size:13px;color:var(--ink3);display:flex;align-items:center;gap:.5rem}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--ink3)}
+.status.ok .dot{background:var(--accent)}
+.status.bad .dot{background:var(--danger)}
+.notice{margin-top:1.4rem;padding:1rem 1.25rem;border-radius:1.2rem;background:var(--danger-soft);color:var(--danger);font-size:13.5px;max-width:40rem}
+
+/* reveal */
+@media (prefers-reduced-motion: no-preference){
+  .rv{opacity:0;transform:translateY(3rem);filter:blur(10px);transition:opacity .9s var(--ease-out),transform .9s var(--ease-out),filter .9s var(--ease-out);transition-delay:calc(var(--i,0) * 70ms)}
+  .rv.in{opacity:1;transform:none;filter:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width:900px){
+  .plist{grid-template-columns:1fr 1fr}
+  .b-8,.b-4,.b-6{grid-column:span 12}
+}
+@media (max-width:767px){
+  .wrap{padding:0 1rem}
+  section{padding:3.5rem 0}
+  .hero{padding-top:7.5rem;padding-bottom:2rem}
+  .nav-link{display:none}
+  .bento{grid-template-columns:1fr;gap:.9rem;margin-top:2.4rem}
+  .b-8,.b-4,.b-6,.b-12{grid-column:span 1}
+  .plist{grid-template-columns:1fr;gap:.9rem}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+  .ph .cap{padding:.65rem .8rem .8rem}
+  .ph .tags{display:none}
+  .pad{padding:1.35rem}
+  .row2,.pick-row{grid-template-columns:1fr}
+  .p-actions .btn{flex:1;justify-content:space-between}
+  .infos{gap:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Navigazione">
+  <div class="brand"><span class="brand-dot"></span>Lumen</div>
+  <button class="nav-link on" data-go="home">Pazienti</button>
+  <button class="nav-link" data-go="agenda">Agenda</button>
+  <button class="nav-link" data-go="study">Studio</button>
+  <button class="nav-link" data-act="new-patient">Nuovo paziente</button>
+  <button class="nav-link" data-act="focus-search">Cerca</button>
+  <button class="burger" id="burger" aria-label="Apri menu"><span></span><span></span></button>
+</nav>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <ul>
+    <li><a href="#" data-go="home"><small>01</small>Pazienti</a></li>
+    <li><a href="#" data-go="agenda"><small>02</small><em>Agenda</em></a></li>
+    <li><a href="#" data-go="study"><small>03</small>Studio <em>tesi</em></a></li>
+    <li><a href="#" data-act="new-patient"><small>04</small>Nuovo <em>paziente</em></a></li>
+    <li><a href="#" data-act="backup"><small>05</small>Backup e <em>Mac</em></a></li>
+    <li><a href="#" data-act="privacy"><small>06</small>Privacy</a></li>
+  </ul>
+  <div class="menu-foot">Lumen non è uno strumento diagnostico. Le decisioni cliniche restano del medico.</div>
+</div>
+
+<main id="app">
+  <!-- HOME -->
+  <div id="v-home">
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow rv"><i></i>Archivio fotografico clinico</span>
+        <h1 class="display rv" style="--i:1">Ogni lesione,<br>nel <em>tempo.</em></h1>
+        <p class="lead rv" style="--i:2">Scatta, archivia per paziente e cartella, confronta prima e dopo. Le foto restano fuori dalla galleria del telefono.</p>
+        <div class="hero-row rv" style="--i:3">
+          <button class="btn" data-act="new-patient">Nuovo paziente<span class="ic"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg></span></button>
+          <button class="btn light" data-act="focus-search">Cerca nell'archivio<span class="ic"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg></span></button>
+        </div>
+        <div class="status rv" id="status" style="--i:4"><span class="dot"></span><span id="status-t">Connessione all'archivio…</span></div>
+        <div id="notice" class="notice hidden"></div>
+        <div id="bk-note"></div>
+
+        <div class="bento">
+          <div class="bezel b-8 rv" style="--i:1"><div class="core pad">
+            <div class="stat-lab">Foto archiviate</div>
+            <div class="stat-num" id="s-photos" style="margin-top:.8rem">0</div>
+            <div class="recent" id="recent"></div>
+          </div></div>
+          <div class="bezel b-4 rv" style="--i:2"><div class="core pad" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:2rem">
+            <div>
+              <div class="stat-lab">Pazienti</div>
+              <div class="stat-num" id="s-patients" style="margin-top:.8rem">0</div>
+            </div>
+            <div class="small muted" id="s-last">Nessuna foto ancora.</div>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding-top:2rem">
+      <div class="wrap">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap">
+          <div>
+            <span class="eyebrow rv"><i></i>Archivio</span>
+            <h2 class="h2 rv" style="margin-top:1rem;--i:1">I tuoi <em>pazienti</em></h2>
+          </div>
+        </div>
+        <div class="bezel rv" style="margin-top:2rem;border-radius:999px;--i:2"><div class="core searchbar" style="border-radius:999px">
+          <svg class="i" viewBox="0 0 24 24" style="color:var(--ink3)"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
+          <input id="q" type="search" placeholder="Cerca per nome, codice, sede o tag" autocomplete="off">
+          <button class="iconbtn hidden" id="q-clear" aria-label="Cancella"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div></div>
+        <div class="folders" id="tagcloud" style="margin:1.1rem 0 0"></div>
+        <div id="photo-results"></div>
+        <div class="plist" id="plist"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- PATIENT -->
+  <div id="v-patient" class="hidden">
+    <section class="hero" style="padding-bottom:6rem">
+      <div class="wrap">
+        <button class="back" data-go="home"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6 6 6"/></svg>Tutti i pazienti</button>
+        <div class="p-head">
+          <div>
+            <span class="eyebrow" id="p-eyebrow"><i></i>Paziente</span>
+            <h1 class="display" id="p-name" style="font-size:clamp(2.4rem,6vw,4.6rem);margin-bottom:0"></h1>
+            <div class="infos" id="p-infos"></div>
+            <div class="qbox" id="p-q"></div>
+            <div id="p-les" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem"></div>
+          </div>
+          <div class="p-actions">
+            <button class="btn" data-act="add-photo">Aggiungi foto<span class="ic"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.2"/></svg></span></button>
+            <button class="btn light" data-act="edit-patient">Scheda<span class="ic"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></span></button>
+          </div>
+        </div>
+
+        <div class="folders" id="folders"></div>
+
+        <div class="toolbar">
+          <div class="small muted" id="p-count"></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="chip" data-act="new-folder"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>Cartella</button>
+            <button class="chip" id="sort-btn" data-act="sort">Più recenti</button>
+            <button class="chip" id="cmp-btn" data-act="compare-mode"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>Confronta</button>
+          </div>
+        </div>
+        <div class="small hidden" id="cmp-hint" style="margin:-.4rem 0 1rem;color:var(--accent);font-weight:500">Tocca due foto per confrontarle.</div>
+        <div class="grid" id="grid"></div>
+
+        <div class="p-ap">
+          <div class="toolbar">
+            <h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem)">Storia <em>appuntamenti</em></h2>
+            <button class="chip" data-act="new-appt-patient"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>Appuntamento</button>
+          </div>
+          <div class="bezel"><div class="core pad"><div class="ap-list" id="p-appts"></div></div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div id="v-study" class="hidden"></div>
+  <div id="v-lesion" class="hidden"></div>
+  <!-- AGENDA -->
+  <div id="v-agenda" class="hidden">
+    <section class="hero" style="padding-bottom:6rem">
+      <div class="wrap">
+        <span class="eyebrow"><i></i>Agenda</span>
+        <h1 class="display" style="font-size:clamp(2.4rem,6vw,4.6rem);margin-bottom:.8rem">I tuoi <em>appuntamenti</em></h1>
+        <p class="lead">Se il paziente è già in archivio, l'appuntamento si collega da solo alla sua storia.</p>
+        <div class="hero-row">
+          <button class="btn" data-act="new-appt">Nuovo appuntamento<span class="ic"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg></span></button>
+          <button class="btn light" data-act="cal-today">Oggi<span class="ic"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><rect x="4" y="5.5" width="16" height="14" rx="2.5"/><path d="M4 10h16M9 3.5v4M15 3.5v4"/></svg></span></button>
+        </div>
+        <div class="ag-layout">
+          <div class="bezel"><div class="core pad">
+            <div class="cal-head">
+              <div class="m" id="cal-m"></div>
+              <div class="cal-nav">
+                <button class="iconbtn" data-act="cal-prev" aria-label="Mese precedente"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+                <button class="iconbtn" data-act="cal-next" aria-label="Mese successivo"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+              </div>
+            </div>
+            <div class="cal" id="cal"></div>
+          </div></div>
+          <div style="display:grid;gap:1.1rem">
+            <div class="bezel"><div class="core pad">
+              <div class="toolbar" style="margin-bottom:1rem"><div class="day-title" id="day-title"></div><button class="chip" data-act="new-appt-day"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>Aggiungi</button></div>
+              <div class="ap-list" id="day-list"></div>
+            </div></div>
+            <div class="bezel"><div class="core pad">
+              <div class="stat-lab" style="margin-bottom:1rem">Prossimi</div>
+              <div class="ap-list" id="next-list"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Sheet -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="bezel"><div class="core pad" id="sheet-body"></div></div></div>
+
+<!-- Viewer -->
+<div class="viewer" id="viewer">
+  <div class="v-top">
+    <button class="iconbtn" data-act="close-viewer" aria-label="Chiudi"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div id="v-mid"></div>
+    <div class="v-nav" id="v-right"></div>
+  </div>
+  <div class="v-img" id="v-single"><img id="v-img" alt=""></div>
+  <div class="cmp-stage hidden" id="cmp-stage">
+    <img id="cmp-a" alt="Prima"><img id="cmp-b" class="after" alt="Dopo">
+    <div class="cmp-line"></div>
+    <div class="cmp-knob"><svg class="i" viewBox="0 0 24 24"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg></div>
+    <span class="cmp-lab l" id="cmp-la">Prima</span><span class="cmp-lab r" id="cmp-lb">Dopo</span>
+  </div>
+  <div class="cmp-side hidden" id="cmp-side">
+    <figure><img id="cmp-sa" alt="Prima"><span class="cmp-lab l" id="cmp-sla">Prima</span></figure>
+    <figure><img id="cmp-sb" alt="Dopo"><span class="cmp-lab l" id="cmp-slb">Dopo</span></figure>
+  </div>
+  <div class="v-info" id="v-info"></div>
+</div>
+
+<div class="viewer" id="blind"></div>
+<input type="file" id="f-cam" accept="image/*" capture="environment" class="hidden">
+<input type="file" id="f-lib" accept="image/*" multiple class="hidden">
+<div class="toast" id="toast"></div>
+
+<script src="vendor/jszip.min.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ICON = {
+  plus:'<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>',
+  arrow:'<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  cam:'<svg class="i" viewBox="0 0 24 24"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.2"/></svg>',
+  lib:'<svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.6"/><path d="m5 17 4.5-4.5 3 3L15 13l4 4"/></svg>',
+  x:'<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  trash:'<svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>',
+  edit:'<svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  l:'<svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+  r:'<svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+  folder:'<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2h6.5A1.5 1.5 0 0 1 20 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/></svg>',
+  ai:'<svg class="i" viewBox="0 0 24 24"><path d="M12 3.5l1.6 4.4 4.4 1.6-4.4 1.6L12 15.5l-1.6-4.4L6 9.5l4.4-1.6zM18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>',
+  copy:'<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><rect x="8" y="8" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A1.5 1.5 0 0 1 6.5 5H15"/></svg>',
+  person:'<svg class="i" viewBox="0 0 24 24" style="width:26px;height:26px"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5"/></svg>'
+};
+
+const S = {
+  db:null, assets:null, uid:null, root:null,
+  patients:[], photos:[], ready:{p:false,f:false},
+  view:"home", pid:null, folder:"Tutte", sortDesc:true,
+  q:"", tag:null, selecting:false, picked:[],
+  viewerList:[], viewerIdx:0, writable:true, lesions:[], screen:[], stTab:"dash", lid:null, downloads:null, appts:[], calY:new Date().getFullYear(), calM:new Date().getMonth(), calSel:null, sample:null, aiImgs:0, cmpPair:null, aiCtl:null
+};
+
+/* ---------- utils ---------- */
+const fmtDate = iso => { if(!iso) return ""; const d=new Date(iso); return isNaN(d)?"":d.toLocaleDateString("it-IT",{day:"numeric",month:"short",year:"numeric"}); };
+const todayISO = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const toLocalDay = ts => { const d=new Date(ts); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const daysBetween = (a,b) => Math.round(Math.abs(new Date(b)-new Date(a))/864e5);
+const age = dob => { if(!dob) return null; const d=new Date(dob), n=new Date(); let a=n.getFullYear()-d.getFullYear(); if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate())) a--; return isNaN(a)?null:a; };
+const parseTags = s => [...new Set(String(s||"").split(/[,#]/).map(t=>t.trim().toLowerCase()).filter(Boolean))].slice(0,12);
+const src = ph => blobURL(ph.assetId) || "";
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2600); }
+function setStatus(kind,text){ const s=$("#status"); s.className="status "+(kind||""); $("#status-t").textContent=text; if(s.classList.contains("rv")) s.classList.add("in"); }
+function showNotice(text){ const n=$("#notice"); n.textContent=text; n.classList.remove("hidden"); }
+
+/* ---------- reveal ---------- */
+const io = "IntersectionObserver" in window ? new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} }),{rootMargin:"0px 0px -6% 0px"}) : null;
+function reveal(scope){ (scope||document).querySelectorAll(".rv:not(.in)").forEach(el=> io? io.observe(el) : el.classList.add("in")); }
+
+/* ---------- menu ---------- */
+$("#burger").addEventListener("click",()=>{ document.body.classList.toggle("menu-open"); $("#menu").setAttribute("aria-hidden", !document.body.classList.contains("menu-open")); });
+function closeMenu(){ document.body.classList.remove("menu-open"); $("#menu").setAttribute("aria-hidden","true"); }
+
+/* ---------- sheet ---------- */
+function openSheet(html, onMount){
+  $("#sheet-body").innerHTML = html;
+  $("#scrim").classList.add("on"); $("#sheet").classList.add("on");
+  $("#sheet .core").scrollTop = 0;
+  onMount && onMount($("#sheet-body"));
+}
+function closeSheet(){ if(S && S.aiCtl) S.aiCtl.abort(); $("#scrim").classList.remove("on"); $("#sheet").classList.remove("on"); }
+$("#scrim").addEventListener("click", closeSheet);
+
+function confirmSheet({title, text, ok="Elimina", danger=true}){
+  return new Promise(res=>{
+    openSheet(`
+      <div class="sheet-h"><h3>${esc(title)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+      <p class="muted" style="font-size:14.5px">${esc(text)}</p>
+      <div class="sheet-f">
+        <button class="btn light plain" data-no>Annulla</button>
+        <button class="btn ${danger?"danger":""}" data-yes>${esc(ok)}<span class="ic">${ICON.trash}</span></button>
+      </div>`, b=>{
+        const done=v=>{ closeSheet(); res(v); };
+        b.querySelector("[data-yes]").onclick=()=>done(true);
+        b.querySelector("[data-no]").onclick=()=>done(false);
+        b.querySelector("[data-x]").onclick=()=>done(false);
+      });
+  });
+}
+
+/* ---------- data ---------- */
+const patient = id => S.patients.find(p=>p.id===id);
+const photosOf = id => S.photos.filter(f=>f.patientId===id);
+function guardWrite(){
+  if(!S.root){ toast("Archivio non disponibile in questa vista."); return false; }
+  if(!S.writable){ toast("Non hai i permessi per modificare l'archivio."); return false; }
+  return true;
+}
+async function safe(fn, failMsg){
+  try{ return await fn(); }
+  catch(e){
+    const code = e && e.code;
+    if(code==="quota_exceeded") toast("Spazio dell'archivio esaurito: elimina qualche foto.");
+    else if(code==="invalid_argument" && S.uid){ S.writable=false; toast(failMsg || "Operazione non consentita."); }
+    else toast(failMsg || "Qualcosa è andato storto. Riprova.");
+    console.error(e); return undefined;
+  }
+}
+
+/* ---------- questionario post-operatorio ---------- */
+function postopState(p){ return p.postop==="compilato"?"ok": p.postop==="da_compilare"?"todo":"na"; }
+function qBadge(p, short){
+  const st=postopState(p);
+  const t = st==="ok" ? (short?"Questionario compilato":"Compilato"+(p.postopDate?" il "+fmtDate(p.postopDate):"")) : st==="todo" ? (short?"Questionario da fare":"Non compilato") : (short?"":"Non previsto");
+  return t ? `<span class="qbadge ${st}"><i></i>${esc(t)}</span>` : "";
+}
+
+/* ---------- render: home ---------- */
+function renderHome(){
+  { const last=LS.get("lastBackup"); const has=S.photos.length||S.patients.length||S.lesions.length;
+    const old = !last || (Date.now()-new Date(last))>3*864e5;
+    $("#bk-note").innerHTML = has && old ? `<button class="qbox" data-act="backup" style="cursor:pointer;margin-top:1rem;text-align:left"><span class="ql">Backup</span><span class="qbadge todo"><i></i>${last?"Ultimo il "+fmtDate(last):"Mai fatto"}</span><span class="small muted">Esporta una copia sul computer</span></button>` : ""; }
+  $("#s-patients").textContent = S.patients.length;
+  $("#s-photos").textContent = S.photos.length;
+  const recent = [...S.photos].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,12);
+  $("#recent").innerHTML = recent.map(f=>`<button class="th" data-open-photo="${esc(f.id)}" data-scope="recent"><img loading="lazy" src="${esc(src(f))}" alt=""></button>`).join("");
+  $("#s-last").textContent = recent[0] ? "Ultima foto: " + fmtDate(recent[0].createdAt) + (patient(recent[0].patientId) ? " · " + patient(recent[0].patientId).name : "") : "Nessuna foto ancora.";
+
+  // tag cloud
+  const counts = {};
+  S.photos.forEach(f=>(f.tags||[]).forEach(t=>counts[t]=(counts[t]||0)+1));
+  const tags = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  $("#tagcloud").innerHTML = tags.map(([t,n])=>`<button class="chip ${S.tag===t?"on":""}" data-tag="${esc(t)}">#${esc(t)} <span class="n">${n}</span></button>`).join("");
+
+  const q = S.q.trim().toLowerCase();
+  // photo results when a tag or query is active
+  let photoHits = [];
+  if(S.tag) photoHits = S.photos.filter(f=>(f.tags||[]).includes(S.tag));
+  else if(q.length>1) photoHits = S.photos.filter(f=>[f.area,f.note,f.folder,...(f.tags||[])].join(" ").toLowerCase().includes(q));
+  photoHits.sort((a,b)=>(b.takenAt||"").localeCompare(a.takenAt||""));
+  S.homeHits = photoHits;
+  $("#photo-results").innerHTML = (S.tag || q.length>1) && photoHits.length ? `
+    <div class="small muted" style="margin:1.8rem 0 .9rem">${photoHits.length} foto ${S.tag?"con #"+esc(S.tag):"trovate"}</div>
+    <div class="grid">${photoHits.slice(0,48).map((f,i)=>photoCard(f,i,"hits",true)).join("")}</div>` : "";
+
+  let list = [...S.patients];
+  if(q){ list = list.filter(p=>{
+      const hay=[p.name,p.code,p.notes,...(p.folders||[]), p.postop==="da_compilare"?"questionario da compilare non compilato":p.postop==="compilato"?"questionario compilato":""].join(" ").toLowerCase();
+      if(hay.includes(q)) return true;
+      return photosOf(p.id).some(f=>[f.area,...(f.tags||[])].join(" ").toLowerCase().includes(q));
+  }); }
+  if(S.tag) list = list.filter(p=>photosOf(p.id).some(f=>(f.tags||[]).includes(S.tag)));
+  list.sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
+
+  const loaded = S.ready.p && S.ready.f;
+  if(!list.length){
+    $("#plist").innerHTML = `<div class="bezel" style="grid-column:1/-1"><div class="core empty-state">
+      <div class="h2">${!loaded && S.root ? "Caricamento…" : (q||S.tag) ? "Nessun <em>risultato</em>" : "Archivio <em>vuoto</em>"}</div>
+      <p class="muted" style="margin:.8rem auto 1.6rem;max-width:26rem">${(q||S.tag) ? "Prova con un altro nome, codice o tag." : "Crea il primo paziente e inizia ad aggiungere le foto."}</p>
+      ${(q||S.tag)?"":`<button class="btn" data-act="new-patient">Nuovo paziente<span class="ic">${ICON.plus}</span></button>`}
+    </div></div>`;
+  } else {
+    $("#plist").innerHTML = list.map((p,i)=>{
+      const ph = photosOf(p.id).sort((a,b)=>(b.takenAt||"").localeCompare(a.takenAt||""));
+      const cov = ph.slice(0,3);
+      const a = age(p.dob);
+      return `<button class="pcard rv in" data-open-patient="${esc(p.id)}" style="--i:${i%6}"><div class="bezel"><div class="core">
+        <div class="cover ${cov.length?"":"empty"}">${cov.length ? cov.map(f=>`<img loading="lazy" src="${esc(src(f))}" alt="">`).join("") : ICON.person}</div>
+        <div class="meta">
+          <div class="name">${esc(p.name)}</div>
+          ${postopState(p)!=="na"?`<div style="margin-top:.55rem">${qBadge(p,true)}</div>`:""}
+          <div class="sub">${p.code?`<span>${esc(p.code)}</span>`:""}${a!==null?`<span>${a} anni</span>`:""}<span>${ph.length} foto</span>${ph[0]?`<span>${fmtDate(ph[0].takenAt)}</span>`:""}</div>
+        </div></div></div></button>`;
+    }).join("");
+  }
+  reveal($("#v-home"));
+}
+
+/* ---------- render: patient ---------- */
+function photoCard(f,i,scope,showPatient){
+  const pickedIdx = S.picked.indexOf(f.id);
+  const pn = showPatient && patient(f.patientId) ? patient(f.patientId).name : "";
+  return `<button class="ph ${pickedIdx>-1?"picked":""}" data-open-photo="${esc(f.id)}" data-scope="${scope}">
+    <span class="sel">${pickedIdx>-1?pickedIdx+1:""}</span>
+    <div class="bezel" style="--r:1.6rem"><div class="core">
+      <div class="img"><img loading="lazy" src="${esc(src(f))}" alt="${esc(f.area||"Foto clinica")}"></div>
+      <div class="cap">
+        <div class="a">${esc(f.area || f.folder || "Foto")}</div>
+        <div class="d">${fmtDate(f.takenAt)}${pn?" · "+esc(pn):""}</div>
+        ${(f.tags||[]).length?`<div class="tags">${f.tags.slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`:""}
+      </div>
+    </div></div></button>`;
+}
+function patientPhotos(){
+  let ph = photosOf(S.pid);
+  if(S.folder!=="Tutte") ph = ph.filter(f=>f.folder===S.folder);
+  ph.sort((a,b)=> S.sortDesc ? (b.takenAt||"").localeCompare(a.takenAt||"") : (a.takenAt||"").localeCompare(b.takenAt||""));
+  return ph;
+}
+function renderPatient(){
+  const p = patient(S.pid);
+  if(!p){ go("home"); return; }
+  $("#p-name").textContent = p.name;
+  $("#p-eyebrow").innerHTML = `<i></i>${p.consent ? "Consenso fotografico raccolto" : "Consenso non registrato"}`;
+  $("#p-eyebrow i").style.background = p.consent ? "var(--accent)" : "var(--danger)";
+  const a = age(p.dob);
+  const infos = [];
+  if(p.code) infos.push(["Codice", p.code]);
+  if(p.dob) infos.push(["Nascita", fmtDate(p.dob) + (a!==null?` · ${a} anni`:"")]);
+  if(p.sex) infos.push(["Sesso", p.sex]);
+  if(p.notes) infos.push(["Note", p.notes]);
+  const les=S.lesions.filter(l=>l.patientId===p.id);
+  $("#p-les").innerHTML = les.map(l=>`<button class="chip on" data-st="open-lesion" data-arg="${esc(l.id)}">${ICON.folder}Scheda studio ${esc(l.code)}</button>`).join("");
+  const qs=postopState(p);
+  $("#p-q").innerHTML = `<span class="ql">Questionario post-operatorio</span>${qBadge(p)}
+    ${qs==="todo"?`<button class="chip on" data-act="q-done">Segna come compilato</button>`:qs==="ok"?`<button class="chip" data-act="q-undo">Annulla</button>`:`<button class="chip" data-act="q-todo">Da compilare</button>`}`;
+  $("#p-infos").innerHTML = infos.map(([k,v])=>`<div><b>${esc(k)}</b>${esc(v)}</div>`).join("");
+
+  const all = photosOf(p.id);
+  const folders = ["Tutte", ...(p.folders||[])];
+  all.forEach(f=>{ if(f.folder && !folders.includes(f.folder)) folders.push(f.folder); });
+  if(!folders.includes(S.folder)) S.folder="Tutte";
+  $("#folders").innerHTML = folders.map(fo=>{
+    const n = fo==="Tutte" ? all.length : all.filter(f=>f.folder===fo).length;
+    return `<button class="chip ${S.folder===fo?"on":""}" data-folder="${esc(fo)}">${fo==="Tutte"?"":ICON.folder}${esc(fo)} <span class="n">${n}</span></button>`;
+  }).join("");
+
+  const pa = apptsOf(p.id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const tday = todayISO();
+  const fut = pa.filter(a=>a.date>=tday).reverse(), past = pa.filter(a=>a.date<tday);
+  $("#p-appts").innerHTML = pa.length ? [
+      fut.length?`<div class="stat-lab">In programma</div>`+fut.map(a=>apptCard(a,{date:true,noLink:true})).join(""):"",
+      past.length?`<div class="stat-lab" style="margin-top:${fut.length?"1rem":"0"}">Passati</div>`+past.map(a=>apptCard(a,{date:true,noLink:true})).join(""):""
+    ].join("") : `<p class="muted" style="font-size:14px">Nessun appuntamento registrato per questo paziente.</p>`;
+
+  const ph = patientPhotos();
+  $("#p-count").textContent = ph.length===1 ? "1 foto" : ph.length + " foto";
+  $("#sort-btn").textContent = S.sortDesc ? "Più recenti" : "Più vecchie";
+  $("#cmp-btn").classList.toggle("on", S.selecting);
+  $("#cmp-hint").classList.toggle("hidden", !S.selecting);
+  $("#grid").classList.toggle("selecting", S.selecting);
+  $("#grid").innerHTML = ph.length ? ph.map((f,i)=>photoCard(f,i,"patient")).join("") :
+    `<div class="bezel" style="grid-column:1/-1"><div class="core empty-state">
+      <div class="h2">Nessuna <em>foto</em></div>
+      <p class="muted" style="margin:.8rem auto 1.6rem;max-width:26rem">${S.folder==="Tutte"?"Scatta la prima foto o scegline una dalla libreria.":"Questa cartella è vuota."}</p>
+      <button class="btn" data-act="add-photo">Aggiungi foto<span class="ic">${ICON.plus}</span></button></div></div>`;
+}
+
+function render(){ if(S.view==="home") renderHome(); else if(S.view==="agenda") renderAgenda(); else if(S.view==="study") renderStudy(); else if(S.view==="lesion") renderLesion(); else renderPatient(); }
+
+function go(view, pid){
+  closeMenu(); closeSheet();
+  S.view=view; S.selecting=false; S.picked=[];
+  if(view==="patient"){ S.pid=pid; S.folder="Tutte"; }
+  $("#v-home").classList.toggle("hidden", view!=="home");
+  $("#v-patient").classList.toggle("hidden", view!=="patient");
+  $("#v-agenda").classList.toggle("hidden", view!=="agenda");
+  $("#v-study").classList.toggle("hidden", view!=="study");
+  $("#v-lesion").classList.toggle("hidden", view!=="lesion");
+  document.querySelectorAll(".nav-link[data-go]").forEach(n=>n.classList.toggle("on", n.dataset.go===(view==="lesion"?"study":view)));
+  window.scrollTo({top:0});
+  render();
+}
+
+/* ---------- patient form ---------- */
+function patientForm(p){
+  const edit = !!p; p = p || {};
+  openSheet(`
+    <div class="sheet-h"><h3>${edit?"Scheda paziente":"Nuovo paziente"}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="pf" autocomplete="off">
+      <div class="field"><label>Nome o iniziali</label><input class="input" name="name" required maxlength="80" value="${esc(p.name)}" placeholder="Es. M.R. oppure Mario Rossi"></div>
+      <div class="row2">
+        <div class="field"><label>Codice / n. cartella</label><input class="input" name="code" maxlength="40" value="${esc(p.code)}" placeholder="Es. DERM-0142"></div>
+        <div class="field"><label>Data di nascita</label><input class="input" type="date" name="dob" value="${esc(p.dob)}"></div>
+      </div>
+      <div class="field"><label>Sesso</label>
+        <select class="input" name="sex">${["","F","M","Altro"].map(s=>`<option value="${s}" ${p.sex===s?"selected":""}>${s||"Non indicato"}</option>`).join("")}</select></div>
+      <div class="field"><label>Note cliniche</label><textarea class="input" name="notes" maxlength="1200" placeholder="Anamnesi, diagnosi, terapia…">${esc(p.notes)}</textarea></div>
+      ${edit?"":`<div class="field"><label>Cartelle iniziali</label><input class="input" name="folders" placeholder="Es. Dorso, Pre-operatorio, Follow-up"></div>`}
+      <div class="row2">
+        <div class="field"><label>Questionario post-operatorio</label><select class="input" name="postop">
+          <option value="" ${!p.postop?"selected":""}>Non previsto</option>
+          <option value="da_compilare" ${p.postop==="da_compilare"?"selected":""}>Non ancora compilato</option>
+          <option value="compilato" ${p.postop==="compilato"?"selected":""}>Compilato</option></select></div>
+        <div class="field"><label>Data compilazione</label><input class="input" type="date" name="postopDate" value="${esc(p.postopDate)}"></div>
+      </div>
+      <label class="check"><input type="checkbox" name="consent" ${p.consent?"checked":""}><span>Il paziente ha dato il consenso informato all'acquisizione e conservazione delle immagini.</span></label>
+      <div class="sheet-f">
+        ${edit?`<button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina paziente</button>`:""}
+        <button type="submit" class="btn">${edit?"Salva":"Crea paziente"}<span class="ic">${ICON.arrow}</span></button>
+      </div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      if(!edit) setTimeout(()=>b.querySelector("[name=name]").focus(),350);
+      const del=b.querySelector("[data-del]");
+      if(del) del.onclick=()=>deletePatient(p.id);
+      b.querySelector("#pf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const now=new Date().toISOString();
+        const body={
+          name:String(fd.get("name")).trim(), code:String(fd.get("code")||"").trim(), dob:String(fd.get("dob")||""),
+          sex:String(fd.get("sex")||""), notes:String(fd.get("notes")||"").trim(), consent:!!fd.get("consent"),
+          postop:String(fd.get("postop")||""), postopDate: fd.get("postop")==="compilato" ? (String(fd.get("postopDate")||"")||todayISO()) : "", updatedAt:now
+        };
+        if(!body.name) return;
+        const btn=e.target.querySelector("[type=submit]"); btn.disabled=true;
+        if(edit){
+          const ok = await safe(()=>S.root.collection("patients").doc(p.id).update(body).then(()=>true),"Salvataggio non riuscito.");
+          btn.disabled=false;
+          if(ok){ closeSheet(); toast("Scheda aggiornata"); }
+        } else {
+          const folders = parseFolders(fd.get("folders"));
+          const ref = S.root.collection("patients").doc();
+          const r = await safe(()=>ref.set({...body, folders, createdAt:now}).then(()=>true),"Creazione non riuscita.");
+          btn.disabled=false;
+          if(r){ closeSheet(); toast("Paziente creato"); go("patient", ref.id); }
+        }
+      };
+    });
+}
+const parseFolders = s => [...new Set(String(s||"").split(",").map(t=>t.trim()).filter(Boolean))].slice(0,20);
+
+async function deletePatient(id){
+  const p = patient(id); const ph = photosOf(id);
+  const ok = await confirmSheet({title:"Eliminare il paziente?", text:`Verranno eliminati ${p?.name||"il paziente"} e tutte le sue ${ph.length} foto. Non si può annullare.`});
+  if(!ok || !guardWrite()) return;
+  toast("Eliminazione in corso…");
+  for(const f of ph){ await removePhoto(f, true); }
+  await safe(()=>S.root.collection("patients").doc(id).delete());
+  toast("Paziente eliminato"); go("home");
+}
+
+function newFolder(){
+  const p = patient(S.pid); if(!p) return;
+  openSheet(`
+    <div class="sheet-h"><h3>Nuova cartella</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="ff"><div class="field"><label>Nome cartella</label><input class="input" name="n" required maxlength="40" placeholder="Es. Nevo dorso, Post-operatorio"></div>
+    <div class="sheet-f"><button class="btn" type="submit">Crea cartella<span class="ic">${ICON.plus}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      setTimeout(()=>b.querySelector("input").focus(),350);
+      b.querySelector("#ff").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const n=String(new FormData(e.target).get("n")).trim(); if(!n) return;
+        const folders=[...new Set([...(p.folders||[]), n])];
+        await safe(()=>S.root.collection("patients").doc(p.id).update({folders, updatedAt:new Date().toISOString()}));
+        S.folder=n; closeSheet(); toast("Cartella creata");
+      };
+    });
+}
+
+/* ---------- photos ---------- */
+let pendingFiles = [];
+function addPhoto(){
+  if(!S.assets){ toast("Il caricamento delle foto è disponibile solo al proprietario dell'archivio."); return; }
+  openSheet(`
+    <div class="sheet-h"><h3>Aggiungi foto</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <div class="pick-row">
+      <button class="pick" data-cam><span class="ic">${ICON.cam}</span><b>Scatta ora</b><span>Apre la fotocamera. La foto non va nel rullino.</span></button>
+      <button class="pick" data-lib><span class="ic">${ICON.lib}</span><b>Dalla libreria</b><span>Scegli una o più foto già scattate.</span></button>
+    </div>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("[data-cam]").onclick=()=>{ $("#f-cam").value=""; $("#f-cam").click(); };
+      b.querySelector("[data-lib]").onclick=()=>{ $("#f-lib").value=""; $("#f-lib").click(); };
+    });
+}
+["#f-cam","#f-lib"].forEach(id=>$(id).addEventListener("change", e=>{
+  const files=[...e.target.files].filter(f=>f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name)).slice(0,20);
+  if(files.length) photoDetails(files);
+}));
+
+function photoDetails(files){
+  pendingFiles = files;
+  const p = patient(S.pid);
+  const folders = [...(p?.folders||[])];
+  const defFolder = S.folder!=="Tutte" ? S.folder : (folders[0]||"");
+  const urls = files.map(f=>URL.createObjectURL(f));
+  const day = files.length===1 && files[0].lastModified ? toLocalDay(files[0].lastModified) : todayISO();
+  openSheet(`
+    <div class="sheet-h"><h3>${files.length===1?"1 foto":files.length+" foto"}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <div class="previews">${urls.map(u=>`<img src="${u}" alt="">`).join("")}</div>
+    <form id="phf" autocomplete="off">
+      <div class="row2">
+        <div class="field"><label>Cartella</label>
+          <select class="input" name="folder">
+            ${folders.map(f=>`<option ${f===defFolder?"selected":""}>${esc(f)}</option>`).join("")}
+            <option value="__none" ${!defFolder?"selected":""}>Senza cartella</option>
+            <option value="__new">+ Nuova cartella…</option>
+          </select></div>
+        <div class="field"><label>Data</label><input class="input" type="date" name="date" value="${day}"></div>
+      </div>
+      <div class="field hidden" id="nf"><label>Nome nuova cartella</label><input class="input" name="newfolder" maxlength="40"></div>
+      <div class="field"><label>Sede anatomica</label><input class="input" name="area" maxlength="80" placeholder="Es. Regione scapolare sinistra"></div>
+      <div class="field"><label>Tag (separati da virgola)</label><input class="input" name="tags" placeholder="Es. nevo, dermatoscopia, follow-up"></div>
+      <div class="field"><label>Nota</label><textarea class="input" name="note" maxlength="1200" placeholder="Descrizione, dimensioni, ABCDE…"></textarea></div>
+      <div class="prog hidden" id="prog"><i></i></div>
+      <div class="small muted hidden" id="prog-t" style="margin-top:.5rem"></div>
+      <div class="sheet-f"><button class="btn" type="submit">Salva nell'archivio<span class="ic">${ICON.arrow}</span></button></div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=()=>{ urls.forEach(URL.revokeObjectURL); closeSheet(); };
+      const sel=b.querySelector("[name=folder]");
+      sel.onchange=()=>b.querySelector("#nf").classList.toggle("hidden", sel.value!=="__new");
+      b.querySelector("#phf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target);
+        let folder=String(fd.get("folder"));
+        if(folder==="__new"){ folder=String(fd.get("newfolder")||"").trim(); if(!folder){ toast("Dai un nome alla cartella"); return; } }
+        if(folder==="__none") folder="";
+        const meta={ folder, area:String(fd.get("area")||"").trim(), tags:parseTags(fd.get("tags")), note:String(fd.get("note")||"").trim(),
+          takenAt: (fd.get("date") ? new Date(fd.get("date")+"T12:00:00").toISOString() : new Date().toISOString()) };
+        const btn=e.target.querySelector("[type=submit]"); btn.disabled=true;
+        b.querySelector("#prog").classList.remove("hidden"); b.querySelector("#prog-t").classList.remove("hidden");
+        let ok=0;
+        for(let i=0;i<files.length;i++){
+          b.querySelector("#prog-t").textContent=`Caricamento ${i+1} di ${files.length}…`;
+          const r = await uploadOne(files[i], meta);
+          if(r) ok++;
+          b.querySelector("#prog i").style.width = ((i+1)/files.length*100)+"%";
+        }
+        if(folder && p && !(p.folders||[]).includes(folder)){
+          await safe(()=>S.root.collection("patients").doc(p.id).update({folders:[...(p.folders||[]),folder]}));
+        }
+        if(p) await safe(()=>S.root.collection("patients").doc(p.id).update({updatedAt:new Date().toISOString()}));
+        urls.forEach(URL.revokeObjectURL);
+        closeSheet();
+        toast(ok===files.length ? (ok===1?"Foto salvata":ok+" foto salvate") : `${ok} di ${files.length} foto salvate`);
+      };
+    });
+}
+
+async function compress(file){
+  try{
+    const bmp = await createImageBitmap(file, {imageOrientation:"from-image"});
+    const max=2400; let {width:w,height:h}=bmp;
+    const k=Math.min(1, max/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k);
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(bmp,0,0,w,h); bmp.close && bmp.close();
+    const blob = await new Promise(r=>c.toBlob(r,"image/jpeg",.88));
+    return blob ? {blob,w,h} : {blob:file,w:0,h:0};
+  }catch(e){ return {blob:file,w:0,h:0}; }
+}
+async function uploadOne(file, meta){
+  const {blob,w,h} = await compress(file);
+  if(blob.size > 20*1024*1024){ toast("Foto troppo grande (max 20 MB)"); return false; }
+  let a;
+  try{ a = await S.assets.upload(blob); }
+  catch(e){ console.error(e); toast("Caricamento non riuscito"); return false; }
+  const now=new Date().toISOString();
+  const r = await safe(()=>S.root.collection("photos").doc().set({
+    patientId:S.pid, assetId:a.id, w, h, bytes:a.sizeBytes||blob.size, ...meta, createdAt:now
+  }).then(()=>true));
+  return !!r;
+}
+async function removePhoto(f, silent){
+  if(S.assets && f.assetId){ try{ await S.assets.delete(f.assetId); }catch(e){ console.warn(e); } }
+  await safe(()=>S.root.collection("photos").doc(f.id).delete());
+  if(!silent) toast("Foto eliminata");
+}
+function editPhoto(f){
+  const p=patient(f.patientId); const folders=[...(p?.folders||[])];
+  if(f.folder && !folders.includes(f.folder)) folders.push(f.folder);
+  openSheet(`
+    <div class="sheet-h"><h3>Dettagli foto</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="ef" autocomplete="off">
+      <div class="row2">
+        <div class="field"><label>Cartella</label><select class="input" name="folder"><option value="">Senza cartella</option>${folders.map(x=>`<option ${x===f.folder?"selected":""}>${esc(x)}</option>`).join("")}</select></div>
+        <div class="field"><label>Data</label><input class="input" type="date" name="date" value="${f.takenAt?toLocalDay(f.takenAt):""}"></div>
+      </div>
+      <div class="field"><label>Sede anatomica</label><input class="input" name="area" maxlength="80" value="${esc(f.area)}"></div>
+      <div class="field"><label>Tag</label><input class="input" name="tags" value="${esc((f.tags||[]).join(", "))}"></div>
+      <div class="field"><label>Nota</label><textarea class="input" name="note" maxlength="1200">${esc(f.note)}</textarea></div>
+      <div class="sheet-f">
+        <button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina foto</button>
+        <button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button>
+      </div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("[data-del]").onclick=async()=>{
+        const ok=await confirmSheet({title:"Eliminare la foto?", text:"La foto verrà rimossa dall'archivio in modo definitivo."});
+        if(ok && guardWrite()){ closeViewer(); await removePhoto(f); }
+      };
+      b.querySelector("#ef").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target);
+        await safe(()=>S.root.collection("photos").doc(f.id).update({
+          folder:String(fd.get("folder")||""), area:String(fd.get("area")||"").trim(), tags:parseTags(fd.get("tags")),
+          note:String(fd.get("note")||"").trim(), takenAt: fd.get("date") ? new Date(fd.get("date")+"T12:00:00").toISOString() : f.takenAt
+        }));
+        closeSheet(); toast("Foto aggiornata");
+      };
+    });
+}
+
+/* ---------- Agenda ---------- */
+const norm = t => String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+function matchPatient(name){
+  const n=norm(name); if(!n) return null;
+  return S.patients.find(p=>norm(p.name)===n || (p.code && norm(p.code)===n)) || null;
+}
+function linkOf(a){ return (a.patientId && patient(a.patientId)) || matchPatient(a.name); }
+const apptsOf = pid => S.appts.filter(a=>{ const l=linkOf(a); return l && l.id===pid; });
+const pad2 = n => String(n).padStart(2,"0");
+const ymd = (y,m,d) => `${y}-${pad2(m+1)}-${pad2(d)}`;
+const dayLabel = iso => { const d=new Date(iso+"T12:00:00"); return d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}); };
+const ST = {prog:"",fatto:"Fatto",annullato:"Annullato"};
+function apptCard(a, o={}){
+  const l=linkOf(a); const cls = a.status==="fatto"?"done":a.status==="annullato"?"cancel":"";
+  const dur = a.dur ? (a.dur>=60 ? (a.dur/60).toString().replace(".",",")+" h" : a.dur+" min") : "";
+  return `<button class="ap ${cls}" data-appt="${esc(a.id)}">
+    <div class="tm">${esc(a.time||"—")}<small>${o.date?new Date(a.date+"T12:00:00").toLocaleDateString("it-IT",{day:"numeric",month:"short"}):esc(dur)}</small></div>
+    <div class="bd">
+      <div class="nm">${esc(l?l.name:a.name||"Senza nome")}${ST[a.status]?`<span class="st">${ST[a.status]}</span>`:""}</div>
+      ${a.reason?`<div class="rs">${esc(a.reason)}</div>`:""}
+      ${a.lesionId && lesion(a.lesionId) ? `<span class="lk" data-st="open-lesion" data-arg="${esc(a.lesionId)}">${ICON.folder}Scheda studio ${esc(lesion(a.lesionId).code)}</span>` : ""}
+      ${l && !o.noLink && !a.lesionId ? `<span class="lk" data-open-patient="${esc(l.id)}">${ICON.folder}Storia paziente · ${photosOf(l.id).length} foto</span>` : ""}
+    </div></button>`;
+}
+function renderAgenda(){
+  if(!S.calSel) S.calSel=todayISO();
+  const y=S.calY, m=S.calM;
+  const first=new Date(y,m,1); const startDow=(first.getDay()+6)%7; const dim=new Date(y,m+1,0).getDate();
+  $("#cal-m").innerHTML = first.toLocaleDateString("it-IT",{month:"long"})+` <em>${y}</em>`;
+  const byDay={}; S.appts.forEach(a=>{ if(a.status!=="annullato") byDay[a.date]=(byDay[a.date]||0)+1; });
+  const tday=todayISO();
+  let cells=["Lun","Mar","Mer","Gio","Ven","Sab","Dom"].map(d=>`<div class="dow">${d}</div>`).join("");
+  const total=Math.ceil((startDow+dim)/7)*7;
+  for(let i=0;i<total;i++){
+    const d=new Date(y,m,1-startDow+i); const iso=ymd(d.getFullYear(),d.getMonth(),d.getDate());
+    const n=byDay[iso]||0;
+    cells+=`<button class="day ${d.getMonth()!==m?"out":""} ${iso===tday?"today":""} ${iso===S.calSel?"sel":""}" data-day="${iso}">
+      ${d.getDate()}<span class="dots">${n>3?`<i></i><b>${n}</b>`:"<i></i>".repeat(n)}</span></button>`;
+  }
+  $("#cal").innerHTML=cells;
+  $("#day-title").textContent = dayLabel(S.calSel);
+  const list=S.appts.filter(a=>a.date===S.calSel).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  $("#day-list").innerHTML = list.length ? list.map(a=>apptCard(a)).join("") : `<p class="muted" style="font-size:14px">Nessun appuntamento in questo giorno.</p>`;
+  const now=new Date(); const nowKey=tday+"T"+pad2(now.getHours())+":"+pad2(now.getMinutes());
+  const next=S.appts.filter(a=>a.status!=="annullato" && a.status!=="fatto" && (a.date+"T"+(a.time||"23:59"))>=nowKey)
+    .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,6);
+  $("#next-list").innerHTML = next.length ? next.map(a=>apptCard(a,{date:true})).join("") : `<p class="muted" style="font-size:14px">Nessun appuntamento in arrivo.</p>`;
+}
+function apptForm(a, preset={}){
+  const edit=!!(a&&a.id); a=a||{};
+  const pre = preset.patientId ? patient(preset.patientId) : null;
+  const name = edit ? (linkOf(a)?.name || a.name || "") : (pre?pre.name:"");
+  const date = a.date || preset.date || S.calSel || todayISO();
+  openSheet(`
+    <div class="sheet-h"><h3>${edit?"Appuntamento":"Nuovo appuntamento"}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="af" autocomplete="off">
+      <div class="field"><label>Paziente</label>
+        <input class="input" name="name" list="pt-list" required maxlength="80" value="${esc(name)}" placeholder="Nome, iniziali o codice">
+        <datalist id="pt-list">${S.patients.map(p=>`<option value="${esc(p.name)}">${esc(p.code||"")}</option>`).join("")}</datalist>
+        <div id="lh"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Data</label><input class="input" type="date" name="date" required value="${esc(date)}"></div>
+        <div class="field"><label>Ora</label><input class="input" type="time" name="time" required value="${esc(a.time||"09:00")}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Durata</label><select class="input" name="dur">${[15,20,30,45,60,90,120].map(d=>`<option value="${d}" ${(a.dur||30)==d?"selected":""}>${d>=60?(d/60).toString().replace(".",",")+" ore":d+" minuti"}</option>`).join("")}</select></div>
+        <div class="field"><label>Stato</label><select class="input" name="status">
+          <option value="prog" ${!a.status||a.status==="prog"?"selected":""}>In programma</option>
+          <option value="fatto" ${a.status==="fatto"?"selected":""}>Fatto</option>
+          <option value="annullato" ${a.status==="annullato"?"selected":""}>Annullato</option></select></div>
+      </div>
+      <div class="field"><label>Motivo</label><input class="input" name="reason" maxlength="120" value="${esc(a.reason)}" placeholder="Es. Controllo nevo, medicazione, mappatura"></div>
+      <div class="field"><label>Note</label><textarea class="input" name="notes" maxlength="1200">${esc(a.notes)}</textarea></div>
+      <div class="sheet-f">
+        ${edit?`<button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina</button>`:""}
+        <button class="btn" type="submit">${edit?"Salva":"Aggiungi"}<span class="ic">${ICON.arrow}</span></button>
+      </div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const inp=b.querySelector("[name=name]"), lh=b.querySelector("#lh");
+      const hint=()=>{
+        const m=matchPatient(inp.value);
+        if(m) lh.innerHTML=`<div class="link-hint ok">${ICON.folder}Collegato alla storia di ${esc(m.name)} · ${photosOf(m.id).length} foto</div>`;
+        else if(inp.value.trim()) lh.innerHTML=`<label class="check" style="margin-top:.6rem"><input type="checkbox" name="mkpatient"><span>Paziente non in archivio. Registralo come nuovo paziente.</span></label>`;
+        else lh.innerHTML="";
+      };
+      inp.addEventListener("input",hint); hint();
+      if(!edit && !pre) setTimeout(()=>inp.focus(),350);
+      const del=b.querySelector("[data-del]");
+      if(del) del.onclick=async()=>{
+        const ok=await confirmSheet({title:"Eliminare l'appuntamento?", text:"L'appuntamento verrà rimosso dall'agenda."});
+        if(ok && guardWrite()){ await safe(()=>S.root.collection("appointments").doc(a.id).delete()); toast("Appuntamento eliminato"); }
+      };
+      b.querySelector("#af").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const nm=String(fd.get("name")).trim(); if(!nm) return;
+        const btn=e.target.querySelector("[type=submit]"); btn.disabled=true;
+        let m=matchPatient(nm); const now=new Date().toISOString();
+        if(!m && fd.get("mkpatient")){
+          const ref=S.root.collection("patients").doc();
+          const ok=await safe(()=>ref.set({name:nm,code:"",dob:"",sex:"",notes:"",consent:false,folders:[],createdAt:now,updatedAt:now}).then(()=>true));
+          if(ok) m={id:ref.id,name:nm};
+        }
+        const body={ name:nm, patientId:m?m.id:"", date:String(fd.get("date")), time:String(fd.get("time")||""), dur:Number(fd.get("dur"))||30,
+          status:String(fd.get("status")||"prog"), reason:String(fd.get("reason")||"").trim(), notes:String(fd.get("notes")||"").trim(), updatedAt:now };
+        const ref = edit ? S.root.collection("appointments").doc(a.id) : S.root.collection("appointments").doc();
+        const ok = await safe(()=>ref.set(edit?{...(({id,...r})=>r)(a), ...body}:{...body, createdAt:now}).then(()=>true),"Salvataggio non riuscito.");
+        btn.disabled=false;
+        if(ok){
+          closeSheet(); toast(m?"Salvato e collegato a "+m.name:"Appuntamento salvato");
+          if(S.view==="agenda"){ S.calSel=body.date; const d=new Date(body.date+"T12:00:00"); S.calY=d.getFullYear(); S.calM=d.getMonth(); renderAgenda(); }
+        }
+      };
+    });
+}
+
+/* ---------- AI ---------- */
+function mdToHtml(t){
+  const lines=esc(t).split(/\r?\n/); let out="", inUl=false;
+  const inline=x=>x.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  for(let raw of lines){
+    const l=raw.trim();
+    if(/^[-*•] /.test(l)){ if(!inUl){ out+="<ul>"; inUl=true; } out+="<li>"+inline(l.replace(/^[-*•] /,""))+"</li>"; continue; }
+    if(inUl){ out+="</ul>"; inUl=false; }
+    if(/^#{1,4} /.test(l)) out+="<h4>"+inline(l.replace(/^#{1,4} /,""))+"</h4>";
+    else if(l) out+="<p>"+inline(l)+"</p>";
+  }
+  if(inUl) out+="</ul>";
+  return out;
+}
+async function blobOf(f){
+  try{ const r=await fetch(src(f)); if(r.ok){ const b=await r.blob(); if(/^image\/(jpeg|png|webp|gif)$/.test(b.type)) return b; } }catch(e){}
+  // fallback: redraw through canvas
+  return await new Promise((res,rej)=>{
+    const im=new Image(); im.crossOrigin="anonymous";
+    im.onload=()=>{ const c=document.createElement("canvas"); const k=Math.min(1,2000/Math.max(im.naturalWidth,im.naturalHeight));
+      c.width=Math.round(im.naturalWidth*k); c.height=Math.round(im.naturalHeight*k); c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+      c.toBlob(b=>b?res(b):rej(new Error("toBlob")),"image/jpeg",.9); };
+    im.onerror=()=>rej(new Error("img")); im.src=src(f);
+  });
+}
+function clinicalContext(f){
+  const p=patient(f.patientId)||{}; const a=age(p.dob);
+  return [
+    a!==null?`Età del paziente: ${a} anni`:"", p.sex?`Sesso: ${p.sex}`:"",
+    f.area?`Sede anatomica: ${f.area}`:"", f.folder?`Cartella: ${f.folder}`:"",
+    f.takenAt?`Data della foto: ${fmtDate(f.takenAt)}`:"",
+    (f.tags||[]).length?`Tag: ${f.tags.join(", ")}`:"", f.note?`Nota del medico: ${f.note}`:"",
+    p.notes?`Note cliniche del paziente: ${p.notes}`:""
+  ].filter(Boolean).join("\n") || "Nessun dato clinico aggiuntivo.";
+}
+const AI_RULES = `Sei un dermatologo esperto e fai da tutor a un medico/studente di medicina al VI anno. Rispondi SOLO in italiano.
+Basati esclusivamente su criteri clinici consolidati e riconosciuti (per esempio regola ABCDE, segno del brutto anatroccolo, checklist a 7 punti di Argenziano, criteri dermoscopici noti). Non inventare dati, studi o citazioni: se nomini un criterio, nominalo correttamente; se non sei sicuro di qualcosa, dillo.
+Non fare una diagnosi definitiva: dai un ragionamento clinico didattico. Se l'immagine non è una lesione cutanea o non è valutabile, dillo chiaramente e spiega perché.
+Usa esattamente questo formato, con titoli che iniziano con "## ", elenchi con "- " e grassetto solo con **parole**:`;
+function sheetAI(title, thumbs, saved){
+  return `
+    <div class="sheet-h"><h3>${esc(title)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <div class="ai-thumbs">${thumbs.map(u=>`<img src="${esc(u)}" alt="">`).join("")}</div>
+    <div class="ai-out" id="ai-out">${saved?mdToHtml(saved.text):`<span class="thinking"><i></i>Sto analizzando l'immagine…</span>`}</div>
+    <div class="ai-meta" id="ai-meta">${saved&&saved.at?"Analisi del "+fmtDate(saved.at):""}</div>
+    <div class="ai-warn">Analisi generata con intelligenza artificiale a scopo di studio. Non è uno strumento diagnostico: le decisioni cliniche restano del medico.</div>
+    <div class="sheet-f">
+      <button class="btn light plain" data-copy>Copia testo</button>
+      <button class="btn light plain hidden" data-stop>Interrompi</button>
+      <button class="btn ai ${saved?"":"hidden"}" data-regen>Rigenera<span class="ic">${ICON.ai}</span></button>
+    </div>`;
+}
+const aiErr = c => ({
+  not_granted:"Non hai autorizzato la pagina a usare Claude.", sampling_disabled:"Claude non è disponibile per questo account.",
+  rate_limited:"Troppe richieste o limite d'uso raggiunto: riprova più tardi.", session_expired:"Sessione scaduta: accedi di nuovo a claude.ai.",
+  image_rejected:"L'immagine non è stata accettata. Prova con un'altra foto.", refused:"Claude non ha potuto analizzare questa immagine.",
+  images_unavailable:"In questa vista non si possono inviare immagini a Claude.", empty_completion:"Nessuna risposta ricevuta. Riprova."
+}[c] || "Analisi non riuscita. Riprova.");
+async function runAI(b, prompt, files, onDone){
+  const out=b.querySelector("#ai-out"), stop=b.querySelector("[data-stop]"), regen=b.querySelector("[data-regen]"), meta=b.querySelector("#ai-meta");
+  out.innerHTML=`<span class="thinking"><i></i>Sto analizzando l'immagine…</span>`; meta.textContent="";
+  stop.classList.remove("hidden"); regen.classList.add("hidden");
+  let images;
+  try{ images = await Promise.all(files.map(blobOf)); }
+  catch(e){ out.innerHTML=`<p>Non riesco a leggere la foto per l'analisi.</p>`; stop.classList.add("hidden"); regen.classList.remove("hidden"); return; }
+  const ctl=new AbortController(); S.aiCtl=ctl;
+  stop.onclick=()=>ctl.abort();
+  try{
+    const {text, truncated} = await S.sample(prompt, { images, signal:ctl.signal, cache:false,
+      onText:({text})=>{ out.innerHTML=mdToHtml(text); } });
+    out.innerHTML=mdToHtml(text);
+    if(truncated) meta.textContent="Risposta incompleta.";
+    else meta.textContent="Analisi del "+fmtDate(new Date().toISOString());
+    onDone && onDone(text);
+  }catch(e){
+    if(e && e.text) out.innerHTML=mdToHtml(e.text); else out.innerHTML="";
+    if(e && e.code!=="cancelled") meta.textContent=aiErr(e && e.code); else meta.textContent="Analisi interrotta.";
+    if(e && ["not_granted","sampling_disabled","images_unavailable"].includes(e.code)){ S.aiImgs=0; }
+  }finally{
+    stop.classList.add("hidden"); regen.classList.remove("hidden"); S.aiCtl=null;
+  }
+}
+function wireAI(b, getText, run){
+  b.querySelector("[data-x]").onclick=()=>{ S.aiCtl&&S.aiCtl.abort(); closeSheet(); };
+  b.querySelector("[data-copy]").onclick=async()=>{ const t=getText(); if(!t) return; try{ await navigator.clipboard.writeText(t); toast("Testo copiato"); }catch(e){ toast("Copia non riuscita"); } };
+  b.querySelector("[data-regen]").onclick=run;
+}
+function aiPhoto(f, regen){
+  if(!S.sample || !S.aiImgs){ toast("Analisi AI non disponibile in questa vista."); return; }
+  const saved = !regen && f.ai ? f.ai : null;
+  let last = saved ? saved.text : "";
+  const prompt = `${AI_RULES}
+## Descrizione morfologica
+## Valutazione ABCDE
+## Diagnosi differenziali
+(in ordine di probabilità, ciascuna con il motivo)
+## Segni d'allarme
+## Cosa fare ora
+(dermatoscopia, biopsia/escissione, follow-up fotografico e a quanto tempo)
+## Qualità della foto
+(come migliorarla: luce, distanza, righello, messa a fuoco)
+
+Se la lesione non è pigmentata, nella sezione ABCDE scrivi che non è applicabile e valuta invece i criteri pertinenti (per esempio quelli per carcinoma basocellulare o spinocellulare).
+
+Dati clinici:
+${clinicalContext(f)}`;
+  openSheet(sheetAI("Analisi AI", [src(f)], saved), b=>{
+    const run=()=>runAI(b, prompt, [f], async text=>{
+      last=text;
+      if(S.root && S.writable) await safe(()=>S.root.collection("photos").doc(f.id).update({ai:{text, at:new Date().toISOString()}}));
+    });
+    wireAI(b, ()=>last || b.querySelector("#ai-out").innerText, run);
+    if(!saved) run();
+  });
+}
+function aiCompare(a,b2){
+  if(!S.sample || S.aiImgs<2){ toast("Analisi AI non disponibile in questa vista."); return; }
+  const d=daysBetween(a.takenAt,b2.takenAt); let last="";
+  const prompt = `${AI_RULES}
+## Cosa è cambiato
+(dimensioni, forma, bordi, colore, struttura, elementi nuovi o scomparsi)
+## Interpretazione
+## Segni d'allarme
+## Cosa fare ora
+
+Ti mando DUE foto della stessa sede dello stesso paziente: la prima è "Prima" (${fmtDate(a.takenAt)}), la seconda è "Dopo" (${fmtDate(b2.takenAt)}), a ${d} giorni di distanza. Confrontale e descrivi l'evoluzione. Tieni conto che luce, distanza e angolazione possono differire tra le due foto: segnala quando un cambiamento potrebbe dipendere dallo scatto e non dalla lesione.
+
+Dati clinici della foto "Prima":
+${clinicalContext(a)}
+
+Dati clinici della foto "Dopo":
+${clinicalContext(b2)}`;
+  openSheet(sheetAI("Evoluzione · AI", [src(a), src(b2)], null), b=>{
+    const run=()=>runAI(b, prompt, [a,b2], t=>{ last=t; });
+    wireAI(b, ()=>last || b.querySelector("#ai-out").innerText, run);
+    run();
+  });
+}
+
+/* ---------- viewer ---------- */
+function openViewer(list, idx){
+  S.viewerList=list; S.viewerIdx=idx;
+  const v=$("#viewer"); v.classList.remove("side");
+  $("#v-single").classList.remove("hidden"); $("#cmp-stage").classList.add("hidden"); $("#cmp-side").classList.add("hidden");
+  v.classList.add("on"); document.body.style.overflow="hidden";
+  paintViewer();
+}
+function paintViewer(){
+  const f=S.viewerList[S.viewerIdx]; if(!f){ closeViewer(); return; }
+  const p=patient(f.patientId);
+  $("#v-img").src=src(f);
+  $("#v-mid").innerHTML=`<span class="small" style="color:rgba(255,255,255,.6)">${S.viewerIdx+1} / ${S.viewerList.length}</span>`;
+  $("#v-right").innerHTML=`
+    ${S.viewerList.length>1?`<button class="iconbtn" data-act="v-prev" aria-label="Precedente">${ICON.l}</button><button class="iconbtn" data-act="v-next" aria-label="Successiva">${ICON.r}</button>`:""}
+    ${S.aiImgs && !f.lesionId?`<button class="iconbtn v-ai" data-act="v-ai" aria-label="Analisi AI">${ICON.ai}</button>`:""}
+    <button class="iconbtn" data-act="v-edit" aria-label="Modifica">${ICON.edit}</button>`;
+  $("#v-info").innerHTML=`<div>
+      <div class="t">${esc(f.area || f.folder || "Foto")}</div>
+      <div class="s">${fmtDate(f.takenAt)}${p?" · "+esc(p.name):""}${f.folder?" · "+esc(f.folder):""}</div>
+      ${f.note?`<div class="s" style="margin-top:.5rem;color:rgba(255,255,255,.8)">${esc(f.note)}</div>`:""}
+      ${(f.tags||[]).length?`<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.6rem">${f.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`:""}
+    </div>
+    ${f.ai && !f.lesionId?`<button class="btn light" data-act="v-ai" style="margin-right:auto;margin-left:0">Vedi analisi AI<span class="ic">${ICON.ai}</span></button>`:""}
+    ${S.view==="home" && p ? `<button class="btn light" data-open-patient="${esc(p.id)}">Apri paziente<span class="ic">${ICON.arrow}</span></button>`:""}`;
+}
+function closeViewer(){ $("#viewer").classList.remove("on"); document.body.style.overflow=""; }
+
+function openCompare(a,b){
+  if(new Date(a.takenAt)>new Date(b.takenAt)) [a,b]=[b,a];
+  const v=$("#viewer"); v.classList.remove("side");
+  $("#v-single").classList.add("hidden"); $("#cmp-stage").classList.remove("hidden"); $("#cmp-side").classList.remove("hidden");
+  $("#cmp-a").src=src(a); $("#cmp-b").src=src(b); $("#cmp-sa").src=src(a); $("#cmp-sb").src=src(b);
+  const la="Prima · "+fmtDate(a.takenAt), lb="Dopo · "+fmtDate(b.takenAt);
+  $("#cmp-la").textContent=la; $("#cmp-lb").textContent=lb; $("#cmp-sla").textContent=la; $("#cmp-slb").textContent=lb;
+  $("#cmp-stage").style.setProperty("--x","50%");
+  $("#v-mid").innerHTML=`<div class="seg"><button class="on" data-cmp="slide">Sovrapponi</button><button data-cmp="side">Affianca</button></div>`;
+  S.cmpPair=[a,b];
+  $("#v-right").innerHTML = S.aiImgs>=2 && !a.lesionId && !b.lesionId ? `<button class="iconbtn v-ai" data-act="cmp-ai" aria-label="Analisi AI dell'evoluzione">${ICON.ai}</button>` : "";
+  const d=daysBetween(a.takenAt,b.takenAt);
+  $("#v-info").innerHTML=`<div><div class="t">${esc(a.area||b.area||"Confronto")}</div>
+    <div class="s">${d===0?"Stesso giorno":d===1?"1 giorno di distanza":d+" giorni di distanza"} · trascina per confrontare</div></div>`;
+  v.classList.add("on"); document.body.style.overflow="hidden";
+}
+(function slider(){
+  const st=$("#cmp-stage"); let drag=false;
+  const set=x=>{ const r=st.getBoundingClientRect(); const p=Math.max(0,Math.min(100,(x-r.left)/r.width*100)); st.style.setProperty("--x",p+"%"); };
+  st.addEventListener("pointerdown",e=>{ drag=true; st.setPointerCapture(e.pointerId); set(e.clientX); });
+  st.addEventListener("pointermove",e=>{ if(drag) set(e.clientX); });
+  st.addEventListener("pointerup",()=>drag=false);
+  st.addEventListener("pointercancel",()=>drag=false);
+})();
+
+/* ---------- events ---------- */
+document.addEventListener("click", e=>{
+  const t=e.target.closest("[data-go],[data-act],[data-open-patient],[data-open-photo],[data-folder],[data-tag],[data-cmp],[data-day],[data-appt],[data-st]");
+  if(!t) return;
+  if(t.tagName==="A") e.preventDefault();
+  if(t.dataset.st){ if(t.tagName!=="INPUT") e.preventDefault(); e.stopPropagation(); studyAct(t.dataset.st, t.dataset.arg, t); return; }
+  if(t.dataset.go){ go(t.dataset.go); return; }
+  if(t.dataset.openPatient){ closeViewer(); go("patient", t.dataset.openPatient); return; }
+  if(t.dataset.day){ S.calSel=t.dataset.day; const d=new Date(t.dataset.day+"T12:00:00"); if(d.getMonth()!==S.calM){ S.calY=d.getFullYear(); S.calM=d.getMonth(); } renderAgenda(); return; }
+  if(t.dataset.appt){ const a=S.appts.find(x=>x.id===t.dataset.appt); if(a) apptForm(a); return; }
+  if(t.dataset.folder){ S.folder=t.dataset.folder; renderPatient(); return; }
+  if(t.dataset.tag){ S.tag = S.tag===t.dataset.tag ? null : t.dataset.tag; renderHome(); return; }
+  if(t.dataset.cmp){
+    $("#viewer").classList.toggle("side", t.dataset.cmp==="side");
+    t.parentElement.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===t)); return;
+  }
+  if(t.dataset.openPhoto){
+    const id=t.dataset.openPhoto, scope=t.dataset.scope;
+    if(scope==="patient" && S.selecting){
+      const i=S.picked.indexOf(id);
+      if(i>-1) S.picked.splice(i,1); else { S.picked.push(id); if(S.picked.length>2) S.picked.shift(); }
+      if(S.picked.length===2){
+        const [a,b]=S.picked.map(x=>S.photos.find(f=>f.id===x));
+        S.selecting=false; S.picked=[]; renderPatient(); if(a&&b) openCompare(a,b);
+      } else renderPatient();
+      return;
+    }
+    let list = scope==="patient" ? patientPhotos() : scope==="hits" ? S.homeHits : scope==="thesis" ? (S.thesisList||[]) : scope==="lesion" ? S.photos.filter(f=>f.lesionId===S.lid).sort((a,b)=>(a.studyName||"").localeCompare(b.studyName||"")) : [...S.photos].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,12);
+    const idx=Math.max(0,list.findIndex(f=>f.id===id));
+    openViewer(list, idx); return;
+  }
+  switch(t.dataset.act){
+    case "new-patient": closeMenu(); if(guardWrite()) patientForm(); break;
+    case "edit-patient": patientForm(patient(S.pid)); break;
+    case "focus-search": go("home"); setTimeout(()=>{ const q=$("#q"); q.scrollIntoView({behavior:"smooth",block:"center"}); q.focus({preventScroll:true}); },120); break;
+    case "backup": backupSheet(); break;
+    case "privacy": closeMenu(); openSheet(`
+      <div class="sheet-h"><h3>Privacy e consenso</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+      <div style="font-size:14.5px;color:var(--ink2);display:grid;gap:.9rem">
+        <p>Foto e schede sono salvate solo su questo dispositivo, nella memoria dell'app. Non passano da nessun server: né GitHub né altri servizi le ricevono.</p>
+        <p>Ogni dispositivo ha il suo archivio. Per portare i dati sul computer usa "Backup e Mac" nel menu: il file di backup contiene dati sanitari, quindi spostalo solo con AirDrop o cavo e conservalo su un dispositivo protetto da password.</p>
+        <p>Nella sezione Studio i pazienti sono registrati solo con il codice studio (AP-/AA-): la tabella codice–identità resta fuori da Lumen, come prevede il protocollo. Fai verificare comunque al DPO dell'ASST l'uso del dispositivo.</p>
+        <p>Se cancelli l'app o i dati del sito, l'archivio viene eliminato: fai backup regolari.</p>
+        <p class="muted small">Lumen non è uno strumento diagnostico. Le decisioni cliniche restano del medico.</p>
+      </div>`, b=>b.querySelector("[data-x]").onclick=closeSheet); break;
+    case "q-done": case "q-undo": case "q-todo": {
+      if(!guardWrite()) break; const p=patient(S.pid); if(!p) break;
+      const v = t.dataset.act==="q-done" ? {postop:"compilato", postopDate:todayISO()} : {postop:"da_compilare", postopDate:""};
+      safe(()=>S.root.collection("patients").doc(p.id).update({...v, updatedAt:new Date().toISOString()}).then(()=>toast(v.postop==="compilato"?"Questionario segnato come compilato":"Questionario da compilare")));
+      break; }
+    case "new-appt": closeMenu(); if(guardWrite()) apptForm(null); break;
+    case "new-appt-day": if(guardWrite()) apptForm(null,{date:S.calSel}); break;
+    case "new-appt-patient": if(guardWrite()) apptForm(null,{patientId:S.pid, date:todayISO()}); break;
+    case "cal-prev": S.calM--; if(S.calM<0){ S.calM=11; S.calY--; } renderAgenda(); break;
+    case "cal-next": S.calM++; if(S.calM>11){ S.calM=0; S.calY++; } renderAgenda(); break;
+    case "cal-today": { const d=new Date(); S.calY=d.getFullYear(); S.calM=d.getMonth(); S.calSel=todayISO(); renderAgenda(); break; }
+    case "add-photo": if(guardWrite()) addPhoto(); break;
+    case "new-folder": if(guardWrite()) newFolder(); break;
+    case "sort": S.sortDesc=!S.sortDesc; renderPatient(); break;
+    case "compare-mode":
+      if(patientPhotos().length<2){ toast("Servono almeno due foto"); break; }
+      S.selecting=!S.selecting; S.picked=[]; renderPatient(); break;
+    case "close-viewer": closeViewer(); break;
+    case "v-prev": S.viewerIdx=(S.viewerIdx-1+S.viewerList.length)%S.viewerList.length; paintViewer(); break;
+    case "v-next": S.viewerIdx=(S.viewerIdx+1)%S.viewerList.length; paintViewer(); break;
+    case "v-ai": { const f=S.viewerList[S.viewerIdx]; if(f) aiPhoto(f, false); break; }
+    case "cmp-ai": if(S.cmpPair) aiCompare(...S.cmpPair); break;
+    case "v-edit": { const f=S.viewerList[S.viewerIdx]; if(f && guardWrite()) editPhoto(f); break; }
+  }
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ if($("#sheet").classList.contains("on")) closeSheet(); else if($("#viewer").classList.contains("on")) closeViewer(); else closeMenu(); }
+  if($("#viewer").classList.contains("on") && !$("#v-single").classList.contains("hidden") && !$("#sheet").classList.contains("on")){
+    if(e.key==="ArrowLeft") document.querySelector("[data-act=v-prev]")?.click();
+    if(e.key==="ArrowRight") document.querySelector("[data-act=v-next]")?.click();
+  }
+});
+// swipe in viewer
+(function(){ let x0=null; const el=$("#v-single");
+  el.addEventListener("touchstart",e=>x0=e.touches[0].clientX,{passive:true});
+  el.addEventListener("touchend",e=>{ if(x0===null) return; const dx=e.changedTouches[0].clientX-x0; x0=null;
+    if(Math.abs(dx)>50) document.querySelector(dx<0?"[data-act=v-next]":"[data-act=v-prev]")?.click(); });
+})();
+document.addEventListener("input", e=>{ if(e.target.id==="st-q"){ const pos=e.target.selectionStart; S.stQ=e.target.value; renderStudy(); const n=$("#st-q"); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} } } });
+let qT;
+$("#q").addEventListener("input", e=>{ clearTimeout(qT); qT=setTimeout(()=>{ S.q=e.target.value; $("#q-clear").classList.toggle("hidden",!S.q); renderHome(); },150); });
+$("#q-clear").addEventListener("click", ()=>{ $("#q").value=""; S.q=""; $("#q-clear").classList.add("hidden"); renderHome(); });
+
+/* ================= STUDIO (tesi) ================= */
+const T5_CUTOFF = "2027-04-15";
+const VERIFY_DATE = "2027-04-30";
+const TARGET_PER_GROUP = 42;
+const RATE_NEEDED = 4.5;
+const isoOf = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const D = iso => new Date(iso+"T12:00:00");
+const addDays = (iso,n) => { const d=D(iso); d.setDate(d.getDate()+n); return isoOf(d); };
+const addMonths = (iso,n) => { const d=D(iso); const day=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+n); const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); d.setDate(Math.min(day,dim)); return isoOf(d); };
+const fmtS = iso => iso ? D(iso).toLocaleDateString("it-IT",{day:"numeric",month:"short",year:"2-digit"}) : "—";
+const daysTo = iso => Math.round((D(iso)-D(todayISO()))/864e5);
+const touchesAugust = (a,b) => { for(let x=a; x<=b; x=addDays(x,1)) if(D(x).getMonth()===7) return true; return false; };
+
+const TPS = [
+  {k:"T0", l:"Pre-op"},
+  {k:"T1", l:"Intervento"},
+  {k:"T2", l:"7–14 giorni", win:s=>({t:addDays(s,10), a:addDays(s,7), b:addDays(s,14)})},
+  {k:"T3", l:"1 mese", win:s=>{ const t=addMonths(s,1); return {t, a:addDays(t,-7), b:addDays(t,7)}; }},
+  {k:"T4", l:"3 mesi", win:s=>{ const t=addMonths(s,3); return {t, a:addDays(t,-14), b:addDays(t,14)}; }, primary:true},
+  {k:"T5", l:"6 mesi", win:s=>{ const t=addMonths(s,6); return {t, a:addDays(t,-14), b:addDays(t,14)}; }, optional:true}
+];
+const TP = Object.fromEntries(TPS.map(t=>[t.k,t]));
+const PHOTO_REQ = {
+  T0:[["frontale","Lesione"],["dermatoscopia","Dermatoscopia"],["margini","Disegno margini"]],
+  T1:[["difetto","Difetto"],["ricostruzione","Ricostruzione"]],
+  T3:[["frontale","Frontale"],["laterale","Laterale"],["obliqua","Obliqua"]],
+  T4:[["frontale","Frontale"],["laterale","Laterale"],["obliqua","Obliqua"]],
+  T5:[["frontale","Frontale"],["laterale","Laterale"],["obliqua","Obliqua"]]
+};
+const PROJ_ALL = [["frontale","Frontale"],["laterale","Laterale"],["obliqua","Obliqua"],["dermatoscopia","Dermatoscopia"],["margini","Disegno margini"],["difetto","Difetto"],["ricostruzione","Ricostruzione"],["altro","Altro"]];
+const Q_SCHED = { T0:["FA","CW","DI"], T3:["SC","INF","AE"], T4:["POSAS","FA","CW","DI","SC","INF","AE"], T5:["POSAS","SC"] };
+const FACEQ = {
+  FA:{l:"Satisfaction with Facial Appearance", n:9},
+  SC:{l:"Appraisal of Scars", n:8},
+  CW:{l:"Cancer Worry", n:10},
+  DI:{l:"Appearance-related Distress", n:8},
+  INF:{l:"Satisfaction with Information: Appearance", n:6},
+  AE:{l:"Checklist Adverse Effects", n:0}
+};
+const POSAS_OBS = ["Vascolarizzazione","Pigmentazione","Spessore","Rilievo","Elasticità","Superficie"];
+const POSAS_PAT = ["Dolore","Prurito","Colore","Rigidità","Spessore","Irregolarità"];
+const EXCL = ["Età < 18 anni","Istologia non BCC/cSCC","Sede non volto/collo","Mohs o exeresi in più tempi","Lembo a distanza o libero","Guarigione per seconda intenzione","Radioterapia pregressa o adiuvante","Altre cicatrici/patologie nell'unità estetica","Deficit cognitivi","Non compila i questionari in italiano","Altro"];
+const COMP_TYPES = ["Deiscenza","Infezione del sito chirurgico","Ematoma/sanguinamento con intervento","Necrosi parziale del lembo","Necrosi totale del lembo","Perdita parziale dell'innesto","Perdita totale dell'innesto","Cicatrice ipertrofica","Retrazione","Ectropion/distorsione strutture libere","Necessità di revisione","Altro"];
+const DEV_TYPES = ["Visita fuori finestra","Foto mancante","Questionario mancante","Visita saltata","Altro"];
+
+const YN = ["","sì","no"];
+const CRF = [
+  {s:"Paziente", f:[
+    {k:"age",l:"Età all'intervento (anni)",t:"num",h:1},{k:"sex",l:"Sesso",t:"sel",o:["","M","F"],h:1},
+    {k:"fototipo",l:"Fototipo di Fitzpatrick",t:"sel",o:["","I","II","III","IV","V","VI"],h:1},
+    {k:"immuno",l:"Immunosoppressione",t:"sel",o:["","no","trapianto","ematologica","farmaci"],h:1},
+    {k:"antitromb",l:"Terapia antitrombotica",t:"sel",o:["","no","antiaggregante","anticoagulante"],h:1},
+    {k:"antitrombSosp",l:"Antitrombotico sospeso",t:"sel",o:YN,h:1},
+    {k:"fumo",l:"Fumo",t:"sel",o:YN,h:1},{k:"diabete",l:"Diabete",t:"sel",o:YN,h:1}]},
+  {s:"Lesione", f:[
+    {k:"sede",l:"Sede",t:"sel",o:["","naso","palpebra","guancia","fronte","orecchio","labbro","cuoio capelluto","collo","mento","tempia","altro"],h:1},
+    {k:"unita",l:"Unità estetica",t:"text",h:1},
+    {k:"zonaH",l:"Zona H",t:"sel",o:YN,h:1},{k:"diametro",l:"Diametro clinico (mm)",t:"num",h:1},
+    {k:"primRec",l:"Primitiva / recidiva",t:"sel",o:["","P","R"],h:1},
+    {k:"dermDelim",l:"Margini dermatoscopici delimitati",t:"sel",o:YN,h:1},
+    {k:"dermExt",l:"Estensione dermatoscopica oltre il clinico (mm)",t:"num",h:1}]},
+  {s:"Intervento", f:[
+    {k:"surgeryDate",l:"Data intervento (T1)",t:"date",h:1},{k:"operatore",l:"Codice operatore",t:"text",h:1},
+    {k:"margine",l:"Margine clinico adottato (mm)",t:"num",h:1},
+    {k:"tecnica",l:"Tecnica ricostruttiva",t:"sel",o:["","sutura diretta","lembo locale","innesto"],h:1},
+    {k:"lemboTipo",l:"Tipo di lembo",t:"sel",o:["","avanzamento","rotazione","trasposizione","bilobato","nasogenieno","altro"],h:1},
+    {k:"innestoTipo",l:"Tipo di innesto",t:"sel",o:["","a tutto spessore","a spessore parziale"],h:1},
+    {k:"difettoA",l:"Difetto: lato maggiore (mm)",t:"num",h:1},{k:"difettoB",l:"Difetto: lato minore (mm)",t:"num",h:1}]},
+  {s:"Istologia", f:[
+    {k:"istotipo",l:"Istotipo",t:"sel",o:["","BCC","cSCC"],h:1},
+    {k:"sottotipo",l:"Sottotipo BCC",t:"sel",o:["","nodulare","superficiale","infiltrativo","sclerodermiforme","micronodulare","misto"],h:1},
+    {k:"grado",l:"Grado cSCC",t:"sel",o:["","G1","G2","G3"],h:1},{k:"stadio",l:"Stadio AJCC 8ª (cSCC)",t:"sel",o:["","T1","T2","T3","T4"],h:1},
+    {k:"margini",l:"Margini",t:"sel",o:["","radicale","non radicale"],h:1},
+    {k:"marginePos",l:"Margine coinvolto",t:"sel",o:["","laterale","profondo","laterale e profondo"],h:1},
+    {k:"distanza",l:"Distanza minima dal margine (mm)",t:"num",h:1},{k:"histoDate",l:"Data referto definitivo",t:"date",h:1}]},
+  {s:"Esiti", f:[
+    {k:"radicalizz",l:"Radicalizzazione",t:"sel",o:YN,h:1},{k:"recidiva",l:"Recidiva",t:"sel",o:YN,h:1},
+    {k:"recidivaDate",l:"Data recidiva",t:"date",h:1},{k:"lastCheck",l:"Data ultimo controllo",t:"date",h:1}]}
+];
+const CRF_KEYS = CRF.flatMap(s=>s.f.map(f=>f.k));
+
+function fieldHtml(f, v){
+  v = v ?? "";
+  let inp;
+  if(f.t==="sel") inp=`<select class="input" name="${f.k}">${f.o.map(o=>`<option value="${esc(o)}" ${String(v)===o?"selected":""}>${o?esc(o):"—"}</option>`).join("")}</select>`;
+  else if(f.t==="num") inp=`<input class="input" type="number" step="0.1" inputmode="decimal" name="${f.k}" value="${esc(v)}">`;
+  else if(f.t==="date") inp=`<input class="input" type="date" name="${f.k}" value="${esc(v)}">`;
+  else inp=`<input class="input" name="${f.k}" maxlength="80" value="${esc(v)}">`;
+  return `<div class="field"><label>${esc(f.l)}</label>${inp}</div>`;
+}
+function fieldsHtml(fs, vals){
+  let out="", buf=[];
+  fs.forEach(f=>{ buf.push(fieldHtml(f, vals[f.k])); if(buf.length===2){ out+=`<div class="row2">${buf.join("")}</div>`; buf=[]; } });
+  if(buf.length) out+=`<div class="row2">${buf.join("")}<div></div></div>`;
+  return out;
+}
+function readFields(form, fs){
+  const fd=new FormData(form), o={};
+  fs.forEach(f=>{ let v=fd.get(f.k); v = v==null ? "" : String(v).trim(); if(f.t==="num") v = v==="" ? "" : Number(String(v).replace(",",".")); o[f.k]=v; });
+  return o;
+}
+
+/* ---------- derived ---------- */
+const lesion = id => S.lesions.find(l=>l.id===id);
+const crf = l => l.crf || {};
+const surg = l => crf(l).surgeryDate || "";
+const consentOk = l => { const c=l.consent||{}; return c.A && c.B && c.C1 && !c.revoked; };
+function tpApplies(l, k){
+  if(k==="T5") return !!surg(l) && surg(l) <= T5_CUTOFF;
+  return true;
+}
+function visitInfo(l, k){
+  const s=surg(l); const v=(l.v||{})[k]||{};
+  const def=TP[k];
+  if(k==="T0"){ return {date:v.date||"", done:!!v.date, state: v.date?"done":"open"}; }
+  if(k==="T1"){ return {date:s, done:!!s && s<=todayISO(), state: !s?"nodate": s<=todayISO()?"done":"future", t:s}; }
+  if(!s) return {state:"nodate"};
+  if(!tpApplies(l,k)) return {state:"na"};
+  const w=def.win(s);
+  if(v.date){ const inw = v.date>=w.a && v.date<=w.b; return {...w, date:v.date, done:true, state: inw?"done":"outwin", inWindow:inw}; }
+  if(v.skipped) return {...w, state:"skipped"};
+  const t=todayISO();
+  const state = t>w.b ? "late" : t>=w.a ? "openwin" : "future";
+  return {...w, state, aug: touchesAugust(w.a,w.b)};
+}
+function photosOfLesion(l, tp){ return S.photos.filter(f=>f.lesionId===l.id && (!tp || f.tp===tp)); }
+function photoChecklist(l, tp){
+  const req=PHOTO_REQ[tp]||[]; const ph=photosOfLesion(l,tp);
+  return req.map(([k,lab])=>({k, lab, ok: ph.some(f=>f.proj===k)}));
+}
+function qItems(l,tp,sc){ return (((l.q||{})[tp]||{})[sc])||null; }
+function qState(l,tp,sc){
+  const q=qItems(l,tp,sc); if(!q) return "todo";
+  if(sc==="POSAS"){ const o=(q.obs||[]).filter(x=>x!==""&&x!=null).length, p=(q.pat||[]).filter(x=>x!==""&&x!=null).length; return o===6&&p===6?"ok": (o||p)?"part":"todo"; }
+  if(sc==="AE") return q.raw ? "ok" : "todo";
+  const n=FACEQ[sc].n, a=(q.items||[]).filter(x=>x!==""&&x!=null).length;
+  return a===n?"ok": a===0?"todo": "part";
+}
+function faceqMissingTooMany(q, n){ const a=(q.items||[]).filter(x=>x!==""&&x!=null).length; return (n-a) >= n/2; }
+const sum6 = arr => { const v=(arr||[]).map(Number).filter(x=>!isNaN(x)&&x>0); return v.length===6 ? v.reduce((a,b)=>a+b,0) : null; };
+function lesionPhase(l){
+  if(l.status==="ritirato") return "Ritirato";
+  if(l.status==="perso") return "Perso al follow-up";
+  if(l.status==="completato") return "Completato";
+  for(const t of ["T0","T1","T2","T3","T4","T5"]){ const vi=visitInfo(l,t); if(["open","nodate","future","openwin","late"].includes(vi.state)) return `${t} · ${TP[t].l}`; }
+  return "Follow-up concluso";
+}
+function nextCode(cohort){
+  const nums=S.lesions.filter(l=>(l.code||"").startsWith(cohort+"-")).map(l=>parseInt(l.code.split("-")[1],10)).filter(n=>!isNaN(n));
+  return `${cohort}-${String((nums.length?Math.max(...nums):0)+1).padStart(3,"0")}`;
+}
+function allDeadlines(){
+  const out=[];
+  S.lesions.forEach(l=>{
+    if(["ritirato","perso","completato"].includes(l.status)) return;
+    ["T2","T3","T4","T5"].forEach(k=>{ const vi=visitInfo(l,k); if(["late","openwin","future"].includes(vi.state)) out.push({l,k,vi}); });
+  });
+  return out.sort((a,b)=>a.vi.b.localeCompare(b.vi.b));
+}
+function autoDeviations(l){
+  const out=[];
+  ["T2","T3","T4","T5"].forEach(k=>{
+    const vi=visitInfo(l,k);
+    if(vi.state==="outwin") out.push({type:"Visita fuori finestra", note:`${k} eseguita il ${fmtS(vi.date)} (finestra ${fmtS(vi.a)}–${fmtS(vi.b)})`, key:"win"+k});
+    if(vi.state==="late") out.push({type:"Visita saltata", note:`${k} non eseguita entro il ${fmtS(vi.b)}`, key:"late"+k});
+    if(vi.done && PHOTO_REQ[k]) photoChecklist(l,k).filter(c=>!c.ok).forEach(c=>out.push({type:"Foto mancante", note:`${k} · ${c.lab}`, key:"ph"+k+c.k}));
+  });
+  return out.filter(d=>!(l.dev||[]).some(x=>x.key===d.key));
+}
+
+/* ---------- writes ---------- */
+const lesRef = id => S.root.collection("lesions").doc(id);
+async function saveLesion(id, patch){ return safe(()=>lesRef(id).update({...patch, updatedAt:new Date().toISOString()}).then(()=>true),"Salvataggio non riuscito."); }
+async function syncAppts(l){
+  const s=surg(l); if(!s || !S.root) return;
+  const col=S.root.collection("appointments");
+  for(const k of ["T1","T2","T3","T4","T5"]){
+    const id=`${l.id}_${k}`; const ex=S.appts.find(a=>a.id===id);
+    if(k==="T5" && !tpApplies(l,"T5")){ if(ex) await safe(()=>col.doc(id).delete()); continue; }
+    const vi=visitInfo(l,k);
+    const date = k==="T1" ? s : (vi.date || vi.t);
+    const status = (k==="T1" ? (s<=todayISO()?"fatto":"prog") : (vi.done?"fatto": vi.state==="skipped"?"annullato":"prog"));
+    const body={ name:l.code, patientId:l.patientId||"", lesionId:l.id, tp:k, date, time:ex?.time||(k==="T1"?"08:30":"09:00"), dur:ex?.dur||(k==="T1"?60:20),
+      status, reason:`${l.code} · ${k} ${TP[k].l}${TP[k].primary?" (endpoint primario)":""}`, notes:ex?.notes||"", updatedAt:new Date().toISOString() };
+    if(ex && ex.date===body.date && ex.status===body.status && ex.reason===body.reason) continue;
+    await safe(()=>col.doc(id).set({...body, createdAt:ex?.createdAt||body.updatedAt}));
+  }
+}
+
+/* ---------- STUDY VIEW ---------- */
+const ST_TABS = [["dash","Cruscotto"],["lesions","Lesioni"],["screen","Screening"],["due","Scadenze"],["blind","Valutazione in cieco"],["thesis","Foto per la tesi"],["export","Dati ed export"]];
+function stTab(){ return S.stTab || "dash"; }
+function renderStudy(){
+  const tab=stTab();
+  const html = {dash:stDash, lesions:stLesions, screen:stScreen, due:stDue, blind:stBlind, thesis:stThesis, export:stExport}[tab]();
+  $("#v-study").innerHTML = `<section class="hero" style="padding-bottom:6rem"><div class="wrap">
+    <span class="eyebrow"><i></i>Tesi sperimentale · Dermatologia</span>
+    <h1 class="display" style="font-size:clamp(2.2rem,5.4vw,4.2rem);margin-bottom:.8rem">Studio <em>BCC/cSCC</em></h1>
+    <p class="lead">Radicalità, tecniche ricostruttive ed esito estetico del distretto cervico-facciale. Una scheda per lesione, codici AP/AA, nessun nome.</p>
+    <div class="folders" style="margin:2rem 0 1.6rem">${ST_TABS.map(([k,l])=>`<button class="chip ${tab===k?"on":""}" data-st="tab" data-arg="${k}">${esc(l)}</button>`).join("")}</div>
+    ${html}</div></section>`;
+}
+function bar(label, n, target, note){
+  const p=Math.min(100, target? n/target*100 : 0);
+  return `<div style="margin-bottom:1.1rem"><div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:.4rem"><b style="font-weight:600">${esc(label)}</b><span class="muted">${n}${target?` / ${target}`:""}${note?" · "+esc(note):""}</span></div>
+    <div class="prog" style="height:8px;margin:0"><i style="width:${p}%"></i></div></div>`;
+}
+function stDash(){
+  const L=S.lesions.filter(l=>l.status!=="ritirato");
+  const byT = t => L.filter(l=>crf(l).tecnica===t).length;
+  const noTech = L.filter(l=>!crf(l).tecnica).length;
+  const t0s = S.lesions.map(l=>(l.v||{}).T0?.date || (l.createdAt||"").slice(0,10)).filter(Boolean).sort();
+  const first=t0s[0]; const weeks = first ? Math.max(1, (D(todayISO())-D(first))/(7*864e5)) : 0;
+  const rate = first ? S.lesions.length/weeks : 0;
+  const prov = first && weeks<4;
+  const scen = !first ? null : rate>=5 ? ["ok","5 o più a settimana: si procede come previsto."] : rate>=3 ? ["todo","3–4 a settimana: attivare la coorte ambispettica; eventualmente studio pilota."] : ["todo","Meno di 3 a settimana: coorte ambispettica e ridimensionamento a studio descrittivo da concordare."];
+  const dl=allDeadlines(); const late=dl.filter(d=>d.vi.state==="late"), open=dl.filter(d=>d.vi.state==="openwin");
+  const t4due = S.lesions.filter(l=>["done","outwin","late","openwin"].includes(visitInfo(l,"T4").state));
+  const t4ok = t4due.filter(l=>qState(l,"T4","POSAS")==="ok");
+  const vd=daysTo(VERIFY_DATE);
+  return `
+  <div class="bento" style="margin-top:0">
+    <div class="bezel b-8"><div class="core pad">
+      <div class="stat-lab" style="margin-bottom:1.2rem">Arruolamento per tecnica</div>
+      ${bar("Sutura diretta", byT("sutura diretta"), TARGET_PER_GROUP)}
+      ${bar("Lembo locale", byT("lembo locale"), TARGET_PER_GROUP)}
+      ${bar("Innesto", byT("innesto"), 0, "solo descrittivo")}
+      ${noTech?`<div class="small muted">${noTech} lesioni senza tecnica registrata.</div>`:""}
+    </div></div>
+    <div class="bezel b-4"><div class="core pad">
+      <div class="stat-lab">Lesioni arruolate</div>
+      <div class="stat-num" style="margin:.7rem 0 .4rem">${S.lesions.length}<span style="font-size:.35em;color:var(--ink3);letter-spacing:-.02em"> / 84</span></div>
+      <div class="small muted">${first?`Ritmo: <b style="color:var(--ink)">${rate.toFixed(1).replace(".",",")}</b> a settimana (servono ${String(RATE_NEEDED).replace(".",",")})`:"Nessuna lesione ancora."}</div>
+      ${prov?`<div class="small muted" style="margin-top:.5rem">Stima provvisoria: meno di 4 settimane di arruolamento.</div>`:""}${scen?`<div class="qbadge ${scen[0]}" style="margin-top:.9rem;white-space:normal;line-height:1.4;border-radius:1rem;padding:.6rem .8rem"><i style="flex:none"></i>${esc(scen[1])}</div>`:""}
+      <div class="small muted" style="margin-top:.9rem">Verifica dei numeri: ${fmtS(VERIFY_DATE)}${vd>=0?` · tra ${vd} giorni`:" · passata"}</div>
+    </div></div>
+    <div class="bezel b-4"><div class="core pad">
+      <div class="stat-lab">Scadenze</div>
+      <div class="stat-num" style="margin:.7rem 0 .4rem;color:${late.length?"var(--danger)":"var(--ink)"}">${late.length}</div>
+      <div class="small muted">visite in ritardo · ${open.length} con finestra aperta ora</div>
+      <button class="chip" style="margin-top:1rem" data-st="tab" data-arg="due">Vedi scadenze</button>
+    </div></div>
+    <div class="bezel b-4"><div class="core pad">
+      <div class="stat-lab">Endpoint primario</div>
+      <div class="stat-num" style="margin:.7rem 0 .4rem">${t4ok.length}<span style="font-size:.35em;color:var(--ink3)"> / ${t4due.length}</span></div>
+      <div class="small muted">POSAS completa a 3 mesi tra le lesioni già arrivate al T4</div>
+    </div></div>
+    <div class="bezel b-4"><div class="core pad">
+      <div class="stat-lab">Seconda valutazione in cieco</div>
+      <div class="stat-num" style="margin:.7rem 0 .4rem">${S.lesions.filter(l=>l.blind&&sum6(l.blind.items)).length}</div>
+      <div class="small muted">lesioni valutate sulle foto a 3 mesi</div>
+      <button class="chip" style="margin-top:1rem" data-st="tab" data-arg="blind">Apri sessione</button>
+    </div></div>
+    <div class="bezel b-12"><div class="core pad">
+      <div class="stat-lab" style="margin-bottom:1.2rem">Diagramma di flusso</div>
+      ${flowHtml()}
+    </div></div>
+  </div>`;
+}
+function flowCounts(){
+  const sc=S.screen; const excl=sc.filter(x=>x.eligible==="no"); const refused=sc.filter(x=>x.eligible==="sì" && x.consent==="rifiuta");
+  const pending=sc.filter(x=>x.eligible!=="no" && x.consent!=="rifiuta" && !x.lesionId);
+  const reasons={}; excl.forEach(x=>{ const r=x.excludeReason||"Non specificato"; reasons[r]=(reasons[r]||0)+1; });
+  const enrolled=S.lesions; const ap=enrolled.filter(l=>l.cohort==="AP").length, aa=enrolled.filter(l=>l.cohort==="AA").length;
+  const lost=enrolled.filter(l=>l.status==="perso"), withdrawn=enrolled.filter(l=>l.status==="ritirato");
+  const analysed=enrolled.filter(l=>qState(l,"T4","POSAS")==="ok");
+  return {sc, excl, refused, pending, reasons, enrolled, ap, aa, lost, withdrawn, analysed};
+}
+function flowHtml(){
+  const c=flowCounts();
+  const box=(n,t,sub)=>`<div style="padding:1rem 1.2rem;border-radius:1.2rem;background:var(--bg);box-shadow:inset 0 0 0 1px var(--hair);min-width:0"><div style="font-size:1.6rem;font-weight:800;letter-spacing:-.04em">${n}</div><div style="font-size:13px;font-weight:600">${esc(t)}</div>${sub?`<div class="small muted" style="margin-top:.3rem">${sub}</div>`:""}</div>`;
+  const arrow=`<div style="text-align:center;color:var(--ink3);font-size:18px;line-height:1">↓</div>`;
+  return `<div style="display:grid;gap:.6rem;max-width:640px">
+    ${box(c.sc.length,"Candidati valutati allo screening")}
+    ${arrow}
+    <div class="row2" style="gap:.6rem">
+      ${box(c.excl.length,"Esclusi", Object.entries(c.reasons).map(([r,n])=>`${esc(r)}: ${n}`).join("<br>")||"—")}
+      ${box(c.refused.length+c.pending.length,"Non arruolati", `Rifiutano il consenso: ${c.refused.length}<br>In attesa: ${c.pending.length}`)}
+    </div>
+    ${arrow}
+    ${box(c.enrolled.length,"Lesioni arruolate", `Prospettica (AP): ${c.ap} · Ambispettica (AA): ${c.aa}`)}
+    ${arrow}
+    <div class="row2" style="gap:.6rem">
+      ${box(c.lost.length+c.withdrawn.length,"Usciti dallo studio", `Persi al follow-up: ${c.lost.length}<br>Consenso revocato: ${c.withdrawn.length}`)}
+      ${box(c.analysed.length,"Analizzabili per l'endpoint primario","POSAS osservatore e paziente complete a 3 mesi")}
+    </div></div>`;
+}
+function lesionRow(l){
+  const c=crf(l); const ph=lesionPhase(l);
+  const cons=consentOk(l);
+  return `<button class="ap" data-st="open-lesion" data-arg="${esc(l.id)}">
+    <div class="tm">${esc(l.code)}<small>${esc(l.cohort==="AA"?"Ambisp.":"Prosp.")}</small></div>
+    <div class="bd"><div class="nm">${esc([c.sede,c.istotipo].filter(Boolean).join(" · ")||"Scheda da completare")}${!cons?`<span class="qbadge todo"><i></i>Consensi</span>`:""}</div>
+    <div class="rs">${esc(c.tecnica||"Tecnica da registrare")}${c.surgeryDate?" · operato il "+fmtS(c.surgeryDate):""}</div>
+    <div class="rs muted" style="margin-top:.2rem">${esc(ph)}</div></div></button>`;
+}
+function stLesions(){
+  const q=(S.stQ||"").toLowerCase();
+  let L=[...S.lesions].sort((a,b)=>(b.code||"").localeCompare(a.code||""));
+  if(q) L=L.filter(l=>[l.code, ...Object.values(crf(l))].join(" ").toLowerCase().includes(q));
+  return `<div class="toolbar"><div class="small muted">${S.lesions.length} lesioni</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap"><input class="input" id="st-q" placeholder="Cerca codice, sede, tecnica" value="${esc(S.stQ||"")}" style="width:auto;min-width:220px;padding:.6rem 1rem">
+    <button class="btn" data-st="enroll">Nuova lesione<span class="ic">${ICON.plus}</span></button></div></div>
+    <div class="bezel"><div class="core pad"><div class="ap-list">${L.length?L.map(lesionRow).join(""):`<p class="muted" style="font-size:14px">Nessuna lesione. Arruolala dallo screening oppure con "Nuova lesione".</p>`}</div></div></div>`;
+}
+function stScreen(){
+  const L=[...S.screen].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  return `<div class="toolbar"><div class="small muted">${L.length} candidati nel registro</div>
+    <button class="btn" data-st="screen-new">Nuovo candidato<span class="ic">${ICON.plus}</span></button></div>
+    <div class="bezel"><div class="core pad"><div class="ap-list">${L.length?L.map(x=>{
+      const st = x.lesionId ? ["ok","Arruolato · "+(lesion(x.lesionId)?.code||"")] : x.eligible==="no" ? ["na","Escluso: "+(x.excludeReason||"")] : x.consent==="rifiuta" ? ["na","Rifiuta il consenso"] : x.eligible==="sì" && x.consent==="sì" ? ["todo","Da arruolare"] : ["todo","Da valutare"];
+      return `<div class="ap" style="cursor:default"><div class="tm">${fmtS(x.date).split(" ").slice(0,2).join(" ")}<small>${esc(x.area||"")}</small></div>
+        <div class="bd"><div class="nm">${esc(x.ref||"Candidato")}<span class="qbadge ${st[0]}"><i></i>${esc(st[1])}</span></div>
+        <div class="rs">${esc([x.suspect, x.plannedTech?"tecnica prevista: "+x.plannedTech:""].filter(Boolean).join(" · "))}</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">
+          <button class="chip" data-st="screen-edit" data-arg="${esc(x.id)}">Modifica</button>
+          ${!x.lesionId && x.eligible==="sì" && x.consent==="sì" ? `<button class="chip on" data-st="enroll" data-arg="${esc(x.id)}">Arruola</button>`:""}
+          ${x.lesionId?`<button class="chip" data-st="open-lesion" data-arg="${esc(x.lesionId)}">Apri scheda</button>`:""}
+        </div></div></div>`; }).join(""):`<p class="muted" style="font-size:14px">Registra qui ogni candidato della lista operatoria, anche chi viene escluso: serve per il diagramma di flusso.</p>`}</div></div></div>`;
+}
+function stDue(){
+  const dl=allDeadlines(); const t=todayISO();
+  const groups=[["In ritardo",dl.filter(d=>d.vi.state==="late")],["Finestra aperta ora",dl.filter(d=>d.vi.state==="openwin")],["Prossimi 21 giorni",dl.filter(d=>d.vi.state==="future" && d.vi.a<=addDays(t,21))],["Più avanti",dl.filter(d=>d.vi.state==="future" && d.vi.a>addDays(t,21))]];
+  const row=d=>`<button class="ap" data-st="open-lesion" data-arg="${esc(d.l.id)}"><div class="tm">${d.k}<small>${esc(TP[d.k].l)}</small></div>
+    <div class="bd"><div class="nm">${esc(d.l.code)}${d.vi.aug?`<span class="qbadge todo"><i></i>Cade ad agosto</span>`:""}${TP[d.k].primary?`<span class="st">Primario</span>`:""}</div>
+    <div class="rs">Finestra ${fmtS(d.vi.a)} – ${fmtS(d.vi.b)} · ideale ${fmtS(d.vi.t)}</div></div></button>`;
+  return groups.map(([g,arr])=>arr.length?`<div class="bezel" style="margin-bottom:1rem"><div class="core pad"><div class="stat-lab" style="margin-bottom:1rem">${g} · ${arr.length}</div><div class="ap-list">${arr.map(row).join("")}</div></div></div>`:"").join("")
+    || `<div class="bezel"><div class="core empty-state"><div class="h2">Nessuna <em>scadenza</em></div><p class="muted" style="margin-top:.8rem">Le visite T2–T5 compaiono qui appena registri la data dell'intervento.</p></div></div>`;
+}
+function blindPool(){ return S.lesions.filter(l=>l.status!=="ritirato" && photosOfLesion(l,"T4").length); }
+function stBlind(){
+  const pool=blindPool(); const done=pool.filter(l=>l.blind&&sum6(l.blind.items));
+  return `<div class="bezel"><div class="core pad">
+    <p style="font-size:14.5px;color:var(--ink2);max-width:40rem">Il secondo valutatore assegna la POSAS osservatore sulle foto a 3 mesi senza conoscere tecnica, codice o paziente. I casi compaiono in ordine casuale e numerati come "Caso 1, 2…".</p>
+    <div class="infos" style="margin:1.4rem 0"><div><b>Con foto T4</b>${pool.length}</div><div><b>Già valutati</b>${done.length}</div><div><b>Da valutare</b>${pool.length-done.length}</div></div>
+    <div class="field" style="max-width:360px"><label>Codice del valutatore</label><input class="input" id="blind-rater" value="${esc(S.blindRater||"")}" placeholder="Es. VAL2"></div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+      <button class="btn" data-st="blind-start" ${pool.length-done.length?"":"disabled"}>Avvia sessione<span class="ic">${ICON.arrow}</span></button>
+      <button class="btn light plain" data-st="blind-start-all" ${pool.length?"":"disabled"}>Rivaluta tutti</button>
+    </div></div></div>`;
+}
+function stThesis(){
+  const ok=S.lesions.filter(l=>(l.consent||{}).C2 && !(l.consent||{}).revoked);
+  const ph=S.photos.filter(f=>f.lesionId && ok.some(l=>l.id===f.lesionId)).sort((a,b)=>(a.studyName||"").localeCompare(b.studyName||""));
+  const excluded=S.lesions.length-ok.length;
+  S.thesisList=ph;
+  return `<div class="toolbar"><div class="small muted">${ph.length} foto da ${ok.length} lesioni con consenso C2${excluded?` · ${excluded} lesioni escluse (senza C2)`:""}</div>
+    ${ph.length?`<button class="btn light" data-st="zip" data-arg="thesis">Scarica ZIP<span class="ic">${ICON.arrow}</span></button>`:""}</div>
+    ${ph.length?`<div class="grid">${ph.map(f=>{ const l=lesion(f.lesionId); const r=(l.consent||{}).recogn;
+      return `<button class="ph" data-open-photo="${esc(f.id)}" data-scope="thesis"><div class="bezel" style="--r:1.6rem"><div class="core"><div class="img"><img loading="lazy" src="${esc(src(f))}" alt=""></div>
+      <div class="cap"><div class="a">${esc(f.studyName||l.code)}</div><div class="d">${r?"Volto riconoscibile consentito":"Volto non riconoscibile"}</div></div></div></div></button>`; }).join("")}</div>`
+      : `<div class="bezel"><div class="core empty-state"><div class="h2">Nessuna <em>foto</em></div><p class="muted" style="margin-top:.8rem">Qui compaiono solo le foto delle lesioni con consenso C2 (uso nella tesi).</p></div></div>`}`;
+}
+function stExport(){
+  const qcSel=S.lesions.filter(l=>l.qc&&l.qc.sel); const devs=S.lesions.flatMap(l=>(l.dev||[]).map(d=>({...d,l})));
+  const auto=S.lesions.flatMap(l=>autoDeviations(l).map(d=>({...d,l})));
+  return `<div class="bento" style="margin-top:0">
+    <div class="bezel b-6"><div class="core pad">
+      <div class="stat-lab" style="margin-bottom:1rem">Export per l'analisi</div>
+      <p class="small muted" style="margin-bottom:1.2rem">File CSV con separatore punto e virgola e decimali con il punto, una riga per lesione. Si aprono in Excel, SPSS, R e Jamovi.</p>
+      <div style="display:grid;gap:.6rem">
+        <button class="btn" data-st="csv" data-arg="lesions">Database lesioni (CSV)<span class="ic">${ICON.arrow}</span></button>
+        <button class="btn light" data-st="csv" data-arg="screen">Registro di screening (CSV)<span class="ic">${ICON.arrow}</span></button>
+        <button class="btn light" data-st="csv" data-arg="dev">Registro deviazioni (CSV)<span class="ic">${ICON.arrow}</span></button>
+        <button class="btn light" data-st="zip" data-arg="all">Archivio foto per codice (ZIP)<span class="ic">${ICON.arrow}</span></button>
+      </div></div></div>
+    <div class="bezel b-6"><div class="core pad">
+      <div class="stat-lab" style="margin-bottom:1rem">Doppio controllo del 10%</div>
+      <p class="small muted" style="margin-bottom:1rem">Estrae a caso il 10% delle schede da verificare sulla cartella clinica.</p>
+      <button class="btn light" data-st="qc-draw" ${S.lesions.length?"":"disabled"}>Estrai schede<span class="ic">${ICON.arrow}</span></button>
+      <div class="ap-list" style="margin-top:1rem">${qcSel.map(l=>`<label class="check"><input type="checkbox" data-st="qc-toggle" data-arg="${esc(l.id)}" ${l.qc.ok?"checked":""}><span><b style="color:var(--ink)">${esc(l.code)}</b> · ${l.qc.ok?"controllata il "+fmtS(l.qc.at):"da controllare"}</span></label>`).join("")}</div>
+    </div></div>
+    <div class="bezel b-12"><div class="core pad">
+      <div class="toolbar"><div class="stat-lab">Registro delle deviazioni · ${devs.length}</div></div>
+      ${auto.length?`<div class="small" style="color:var(--danger);font-weight:600;margin-bottom:.6rem">Rilevate in automatico, da confermare</div><div class="ap-list" style="margin-bottom:1.4rem">${auto.map(d=>`<div class="ap" style="cursor:default"><div class="tm">${esc(d.l.code)}</div><div class="bd"><div class="nm">${esc(d.type)}</div><div class="rs">${esc(d.note)}</div>
+        <button class="chip" style="margin-top:.5rem" data-st="dev-confirm" data-arg="${esc(d.l.id)}|${esc(d.key)}">Registra</button></div></div>`).join("")}</div>`:""}
+      <div class="ap-list">${devs.length?devs.sort((a,b)=>(b.at||"").localeCompare(a.at||"")).map(d=>`<button class="ap" data-st="open-lesion" data-arg="${esc(d.l.id)}"><div class="tm">${esc(d.l.code)}<small>${fmtS((d.at||"").slice(0,10))}</small></div><div class="bd"><div class="nm">${esc(d.type)}</div><div class="rs">${esc(d.note||"")}</div></div></button>`).join(""):`<p class="muted" style="font-size:14px">Nessuna deviazione registrata.</p>`}</div>
+    </div></div>
+  </div>`;
+}
+
+/* ---------- LESION VIEW ---------- */
+function renderLesion(){
+  const l=lesion(S.lid); if(!l){ go("study"); return; }
+  const c=crf(l), cons=l.consent||{};
+  const p = l.patientId ? patient(l.patientId) : null;
+  const tl = TPS.map(t=>{
+    const vi=visitInfo(l,t.k); if(vi.state==="na") return "";
+    const stLab = {done:["ok","Eseguita"],outwin:["todo","Fuori finestra"],late:["todo","In ritardo"],openwin:["ok","Finestra aperta"],future:["na","In arrivo"],nodate:["na","Manca la data dell'intervento"],open:["todo","Da registrare"],skipped:["na","Saltata"]}[vi.state]||["na",""];
+    const chk = PHOTO_REQ[t.k] ? photoChecklist(l,t.k) : [];
+    const qs = (Q_SCHED[t.k]||[]);
+    return `<div class="bezel"><div class="core pad" style="padding:1.3rem 1.4rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+        <div><div style="font-weight:800;font-size:1.3rem;letter-spacing:-.04em">${t.k} <span style="font-family:var(--serif);font-weight:400;font-style:italic;color:var(--ink3)">${esc(t.l)}</span>${t.primary?` <span class="st">Endpoint primario</span>`:""}</div>
+        <div class="small muted" style="margin-top:.2rem">${t.k==="T1" ? (c.surgeryDate?"Intervento: "+fmtS(c.surgeryDate):"Data dell'intervento non registrata") : t.k==="T0" ? (vi.date?"Visita: "+fmtS(vi.date):"Data della visita pre-operatoria") : vi.a ? `Finestra ${fmtS(vi.a)} – ${fmtS(vi.b)}${vi.date?" · eseguita il "+fmtS(vi.date):""}` : ""}</div></div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center"><span class="qbadge ${stLab[0]}"><i></i>${esc(stLab[1])}</span>${vi.aug&&!vi.done?`<span class="qbadge todo"><i></i>Cade ad agosto</span>`:""}
+          ${t.k==="T1"?`<button class="chip" data-st="crf" data-arg="Intervento">Dati intervento</button>`:`<button class="chip" data-st="visit" data-arg="${t.k}">${vi.date?"Modifica data":"Registra visita"}</button>`}</div>
+      </div>
+      ${chk.length?`<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem">${chk.map(x=>`<button class="chip ${x.ok?"":""}" data-st="photo" data-arg="${t.k}|${x.k}" style="${x.ok?"background:var(--accent-soft);color:var(--accent);box-shadow:none":""}">${x.ok?"✓":"+"} ${esc(x.lab)}</button>`).join("")}</div>`:""}
+      ${qs.length?`<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">${qs.map(sc=>{ const s=qState(l,t.k,sc); const lab=sc==="POSAS"?"POSAS":"FACE-Q "+sc; return `<button class="chip" data-st="q" data-arg="${t.k}|${sc}" style="${s==="ok"?"background:var(--accent-soft);color:var(--accent);box-shadow:none":s==="part"?"background:var(--danger-soft);color:var(--danger);box-shadow:none":""}">${s==="ok"?"✓":s==="part"?"◐":"○"} ${esc(lab)}${sc==="POSAS"&&sum6((qItems(l,t.k,"POSAS")||{}).obs)?` · ${sum6(qItems(l,t.k,"POSAS").obs)}`:""}</button>`; }).join("")}</div>`:""}
+      ${t.k==="T4" && l.blind && sum6(l.blind.items) ? `<div class="small muted" style="margin-top:.7rem">Valutazione in cieco (${esc(l.blind.rater||"")}): POSAS osservatore ${sum6(l.blind.items)}</div>`:""}
+    </div></div>`;
+  }).join("");
+  const sections = CRF.map(sec=>{
+    const filled = sec.f.filter(f=>c[f.k]!==undefined && c[f.k]!=="").length;
+    return `<button class="ap" data-st="crf" data-arg="${esc(sec.s)}"><div class="tm" style="width:auto;min-width:6.5rem">${esc(sec.s)}<small>${filled}/${sec.f.length} campi</small></div>
+      <div class="bd"><div class="rs">${sec.f.filter(f=>c[f.k]!==undefined&&c[f.k]!=="").slice(0,4).map(f=>`${esc(f.l.replace(/ \(.*\)/,""))}: <b>${esc(f.t==="date"?fmtS(c[f.k]):c[f.k])}</b>`).join(" · ")||"Da compilare"}</div></div></button>`;
+  }).join("");
+  const comp=(l.comp||[]).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const devs=l.dev||[];
+  $("#v-lesion").innerHTML = `<section class="hero" style="padding-bottom:6rem"><div class="wrap">
+    <button class="back" data-st="back">${ICON.l.replace('class="i"','class="i" style="width:15px;height:15px"')}Studio</button>
+    <div class="p-head"><div>
+      <span class="eyebrow"><i style="background:${consentOk(l)?"var(--accent)":"var(--danger)"}"></i>${l.cohort==="AA"?"Coorte ambispettica":"Coorte prospettica"} · ${esc(lesionPhase(l))}</span>
+      <h1 class="display" style="font-size:clamp(2.4rem,6vw,4.6rem);margin-bottom:0">${esc(l.code)}</h1>
+      <div class="infos">${[["Sede",[c.sede,c.unita].filter(Boolean).join(" · ")],["Istotipo",c.istotipo],["Tecnica",[c.tecnica,c.lemboTipo||c.innestoTipo].filter(Boolean).join(" · ")],["Margini",c.margini]].filter(x=>x[1]).map(([k,v])=>`<div><b>${k}</b>${esc(v)}</div>`).join("")}</div>
+    </div>
+    <div class="p-actions">
+      <button class="btn" data-st="consent">Consensi<span class="ic">${consentOk(l)?"✓":"!"}</span></button>
+      <button class="btn light" data-st="status">Stato<span class="ic">${ICON.edit}</span></button>
+      ${p?`<button class="btn light" data-open-patient="${esc(p.id)}">Paziente<span class="ic">${ICON.arrow}</span></button>`:""}
+    </div></div>
+    ${!consentOk(l)?`<div class="notice">${cons.revoked?"Consenso revocato il "+fmtS(cons.revoked)+": non si raccolgono altri dati né foto.":"Consensi A, B e C1 non completi: prima di registrare dati o scattare foto di ricerca vanno raccolti tutti e tre."}</div>`:""}
+    <h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem);margin:3rem 0 1.2rem">Percorso <em>T0–T5</em></h2>
+    <div style="display:grid;gap:.8rem">${tl}</div>
+    <h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem);margin:3.5rem 0 1.2rem">Scheda <em>raccolta dati</em></h2>
+    <div class="bezel"><div class="core pad"><div class="ap-list">${sections}</div></div></div>
+    <div class="toolbar" style="margin-top:3.5rem"><h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem)">Complicanze</h2><button class="chip" data-st="comp-new">${ICON.plus.replace("15px","14px").replace("15px","14px")}Complicanza</button></div>
+    <div class="bezel"><div class="core pad"><div class="ap-list">${comp.length?comp.map((x,i)=>`<button class="ap" data-st="comp-edit" data-arg="${i}"><div class="tm">${fmtS(x.date).split(" ").slice(0,2).join(" ")}<small>${esc(x.phase||"")}</small></div><div class="bd"><div class="nm">${esc(x.type)}</div><div class="rs">${esc(x.treat||"")}</div></div></button>`).join(""):`<p class="muted" style="font-size:14px">Nessuna complicanza registrata.</p>`}</div></div></div>
+    <div class="toolbar" style="margin-top:3.5rem"><h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem)">Deviazioni</h2><button class="chip" data-st="dev-new">${ICON.plus.replace("15px","14px").replace("15px","14px")}Deviazione</button></div>
+    <div class="bezel"><div class="core pad"><div class="ap-list">
+      ${autoDeviations(l).map(d=>`<div class="ap" style="cursor:default"><div class="tm" style="color:var(--danger)">!</div><div class="bd"><div class="nm">${esc(d.type)}</div><div class="rs">${esc(d.note)}</div><button class="chip" style="margin-top:.5rem" data-st="dev-confirm" data-arg="${esc(l.id)}|${esc(d.key)}">Registra</button></div></div>`).join("")}
+      ${devs.map(d=>`<div class="ap" style="cursor:default"><div class="tm">${fmtS((d.at||"").slice(0,10)).split(" ").slice(0,2).join(" ")}</div><div class="bd"><div class="nm">${esc(d.type)}</div><div class="rs">${esc(d.note||"")}</div></div></div>`).join("")}
+      ${!devs.length&&!autoDeviations(l).length?`<p class="muted" style="font-size:14px">Nessuna deviazione.</p>`:""}
+    </div></div></div>
+    <div class="toolbar" style="margin-top:3.5rem"><h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem)">Foto <em>della lesione</em></h2></div>
+    <div class="grid">${photosOfLesion(l).sort((a,b)=>(a.studyName||"").localeCompare(b.studyName||"")).map((f,i)=>`<button class="ph" data-open-photo="${esc(f.id)}" data-scope="lesion"><div class="bezel" style="--r:1.6rem"><div class="core"><div class="img"><img loading="lazy" src="${esc(src(f))}" alt=""></div><div class="cap"><div class="a">${esc(f.tp)} · ${esc(f.proj)}</div><div class="d">${esc(f.studyName||"")}</div></div></div></div></button>`).join("") || `<p class="muted" style="font-size:14px">Tocca una voce della checklist foto nel percorso per scattare.</p>`}</div>
+  </div></section>`;
+}
+
+/* ---------- sheets ---------- */
+function enrollSheet(screenId){
+  const sc = screenId ? S.screen.find(x=>x.id===screenId) : null;
+  const studyPatients = S.patients.filter(p=>S.lesions.some(l=>l.patientId===p.id));
+  openSheet(`<div class="sheet-h"><h3>Nuova lesione</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="enf" autocomplete="off">
+      <div class="row2">
+        <div class="field"><label>Coorte</label><select class="input" name="cohort"><option value="AP">AP · prospettica</option><option value="AA">AA · ambispettica</option></select></div>
+        <div class="field"><label>Codice studio</label><input class="input" name="code" required value="${esc(nextCode("AP"))}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Data visita T0</label><input class="input" type="date" name="t0" value="${esc(sc?.date||todayISO())}"></div>
+        <div class="field"><label>Sede</label><select class="input" name="sede">${CRF[1].f[0].o.map(o=>`<option ${sc&&sc.area===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>
+      </div>
+      <div class="field"><label>Stesso paziente di una lesione già arruolata?</label><select class="input" name="pat"><option value="">No, nuovo paziente</option>${studyPatients.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("")}</select></div>
+      <div class="ai-warn" style="margin-top:.4rem">Il paziente viene registrato solo con il codice studio. La tabella codice–identità resta al responsabile del centro, fuori da Lumen.</div>
+      <div class="sheet-f"><button class="btn" type="submit">Crea scheda<span class="ic">${ICON.arrow}</span></button></div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const co=b.querySelector("[name=cohort]"), cd=b.querySelector("[name=code]");
+      co.onchange=()=>{ cd.value=nextCode(co.value); };
+      b.querySelector("#enf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const code=String(fd.get("code")).trim().toUpperCase();
+        if(S.lesions.some(l=>l.code===code)){ toast("Codice già usato"); return; }
+        const now=new Date().toISOString(); let pid=String(fd.get("pat")||"");
+        e.target.querySelector("[type=submit]").disabled=true;
+        if(!pid){ const pr=S.root.collection("patients").doc(); const ok=await safe(()=>pr.set({name:code, code, dob:"", sex:"", notes:"Paziente dello studio di tesi", consent:false, folders:[], createdAt:now, updatedAt:now}).then(()=>true)); if(!ok) return; pid=pr.id; }
+        const ref=S.root.collection("lesions").doc();
+        const ok=await safe(()=>ref.set({code, cohort:String(fd.get("cohort")), patientId:pid, crf:{sede:String(fd.get("sede")||"")}, v:{T0:{date:String(fd.get("t0")||"")}}, consent:{}, q:{}, comp:[], dev:[], status:"attivo", screenId:sc?.id||"", createdAt:now, updatedAt:now}).then(()=>true));
+        if(!ok) return;
+        if(sc) await safe(()=>S.root.collection("screening").doc(sc.id).update({lesionId:ref.id}));
+        closeSheet(); toast("Lesione "+code+" creata"); S.lid=ref.id; go("lesion");
+        setTimeout(()=>consentSheet(ref.id),500);
+      };
+    });
+}
+function screenSheet(id){
+  const x = id ? S.screen.find(s=>s.id===id) : {};
+  openSheet(`<div class="sheet-h"><h3>${id?"Candidato":"Nuovo candidato"}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="scf" autocomplete="off">
+      <div class="row2"><div class="field"><label>Data</label><input class="input" type="date" name="date" value="${esc(x.date||todayISO())}"></div>
+        <div class="field"><label>Riferimento interno</label><input class="input" name="ref" maxlength="40" value="${esc(x.ref)}" placeholder="Es. lista op. 12/03, n. 4"></div></div>
+      <div class="row2"><div class="field"><label>Sede</label><select class="input" name="area">${CRF[1].f[0].o.map(o=>`<option ${x.area===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>
+        <div class="field"><label>Sospetto</label><select class="input" name="suspect">${["","BCC","cSCC","altro"].map(o=>`<option ${x.suspect===o?"selected":""}>${o}</option>`).join("")}</select></div></div>
+      <div class="field"><label>Tecnica prevista</label><select class="input" name="plannedTech">${["","sutura diretta","lembo locale","innesto","non nota"].map(o=>`<option ${x.plannedTech===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="row2"><div class="field"><label>Eleggibile</label><select class="input" name="eligible">${["","sì","no"].map(o=>`<option ${x.eligible===o?"selected":""} value="${o}">${o||"Da valutare"}</option>`).join("")}</select></div>
+        <div class="field"><label>Consenso</label><select class="input" name="consent">${[["","In attesa"],["sì","Firmato"],["rifiuta","Rifiuta"]].map(([v,t])=>`<option value="${v}" ${x.consent===v?"selected":""}>${t}</option>`).join("")}</select></div></div>
+      <div class="field"><label>Motivo di esclusione</label><select class="input" name="excludeReason"><option value="">—</option>${EXCL.map(o=>`<option ${x.excludeReason===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>
+      <div class="field"><label>Note</label><textarea class="input" name="note" maxlength="600">${esc(x.note)}</textarea></div>
+      <div class="sheet-f">${id?`<button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina</button>`:""}<button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const del=b.querySelector("[data-del]"); if(del) del.onclick=async()=>{ if(await confirmSheet({title:"Eliminare il candidato?",text:"Verrà tolto dal registro di screening."})){ await safe(()=>S.root.collection("screening").doc(id).delete()); } };
+      b.querySelector("#scf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const o={}; ["date","ref","area","suspect","plannedTech","eligible","consent","excludeReason","note"].forEach(k=>o[k]=String(fd.get(k)||"").trim());
+        if(o.eligible==="no" && !o.excludeReason){ toast("Indica il motivo di esclusione"); return; }
+        o.updatedAt=new Date().toISOString();
+        const ref = id ? S.root.collection("screening").doc(id) : S.root.collection("screening").doc();
+        const ok = await safe(()=>ref.set({...(id?(({id:_,...r})=>r)(x):{createdAt:o.updatedAt, lesionId:""}), ...o}).then(()=>true));
+        if(ok){ closeSheet(); toast("Registro aggiornato"); }
+      };
+    });
+}
+function consentSheet(lid){
+  const l=lesion(lid); if(!l) return; const c=l.consent||{};
+  const ck=(k,t,req)=>`<label class="check" style="margin-bottom:.5rem"><input type="checkbox" name="${k}" ${c[k]?"checked":""}><span>${t}${req?` <b style="color:var(--danger)">· obbligatorio</b>`:""}</span></label>`;
+  openSheet(`<div class="sheet-h"><h3>Consensi · ${esc(l.code)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="cof">
+      <div class="field"><label>Data di firma</label><input class="input" type="date" name="date" value="${esc(c.date||todayISO())}"></div>
+      ${ck("A","<b>A</b> · Partecipazione allo studio",1)}${ck("B","<b>B</b> · Trattamento dei dati personali",1)}
+      <div class="stat-lab" style="margin:1rem 0 .6rem .2rem">C · Fotografie cliniche</div>
+      ${ck("C1","1 · Valutazione nello studio, anche da un secondo medico",1)}${ck("C2","2 · Tesi di laurea, senza dati identificativi")}${ck("C3","3 · Pubblicazioni e congressi")}${ck("C4","4 · Didattica")}
+      ${ck("recogn","Parti del volto possono essere riconoscibili quando la sede lo rende inevitabile")}
+      <div class="stat-lab" style="margin:1rem 0 .6rem .2rem">Facoltativo</div>
+      ${ck("recontact","Può essere ricontattato per le visite o per il controllo a 6 mesi")}
+      <div class="field" style="margin-top:1rem"><label>Chi ha raccolto il consenso</label><input class="input" name="by" maxlength="60" value="${esc(c.by)}" placeholder="Codice o ruolo del medico delegato"></div>
+      <div class="sheet-f">
+        ${c.revoked?`<span class="qbadge todo" style="margin-right:auto"><i></i>Revocato il ${fmtS(c.revoked)}</span>`:`<button type="button" class="btn light plain" data-revoke style="margin-right:auto;color:var(--danger)">Registra revoca</button>`}
+        <button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const rv=b.querySelector("[data-revoke]");
+      if(rv) rv.onclick=()=>revokeSheet(lid);
+      b.querySelector("#cof").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const o={...c};
+        ["A","B","C1","C2","C3","C4","recogn","recontact"].forEach(k=>o[k]=!!fd.get(k));
+        o.date=String(fd.get("date")||""); o.by=String(fd.get("by")||"").trim();
+        const ok=await saveLesion(lid,{consent:o});
+        if(ok){ closeSheet(); toast(o.A&&o.B&&o.C1?"Consensi registrati":"Salvato: mancano consensi obbligatori"); }
+      };
+    });
+}
+function revokeSheet(lid){
+  const l=lesion(lid);
+  openSheet(`<div class="sheet-h"><h3>Revoca · ${esc(l.code)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="rvf"><div class="field"><label>Cosa viene revocato</label><select class="input" name="scope">
+      <option value="all">Partecipazione e trattamento dei dati (esce dallo studio)</option>
+      <option value="photo">Solo uso delle foto per tesi, pubblicazioni e didattica (usi 2–4)</option></select></div>
+      <div class="field"><label>Data</label><input class="input" type="date" name="date" value="${todayISO()}"></div>
+      <p class="small muted">I dati già analizzati in forma aggregata restano. Dopo la revoca totale l'app non permette di registrare altri dati né foto.</p>
+      <div class="sheet-f"><button class="btn danger" type="submit">Registra revoca<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("#rvf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const d=String(fd.get("date")); const c={...(l.consent||{})};
+        if(fd.get("scope")==="all"){ c.revoked=d; await saveLesion(lid,{consent:c, status:"ritirato"}); }
+        else { c.C2=false; c.C3=false; c.C4=false; c.photoRevoked=d; await saveLesion(lid,{consent:c}); }
+        closeSheet(); toast("Revoca registrata");
+      };
+    });
+}
+function crfSheet(lid, secName){
+  const l=lesion(lid); const sec=CRF.find(s=>s.s===secName)||CRF[0]; const c=crf(l);
+  openSheet(`<div class="sheet-h"><h3>${esc(sec.s)} · ${esc(l.code)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <div class="folders" style="margin:0 0 1.2rem">${CRF.map(s=>`<button class="chip ${s.s===sec.s?"on":""}" data-sec="${esc(s.s)}">${esc(s.s)}</button>`).join("")}</div>
+    <form id="crff" autocomplete="off">${fieldsHtml(sec.f, c)}
+      <div class="sheet-f"><button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelectorAll("[data-sec]").forEach(x=>x.onclick=()=>crfSheet(lid,x.dataset.sec));
+      b.querySelector("#crff").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        if(l.status==="ritirato"){ toast("Consenso revocato: non si registrano altri dati."); return; }
+        const vals=readFields(e.target, sec.f); const nc={...c, ...vals};
+        if(nc.tecnica && nc.tecnica!=="lembo locale") nc.lemboTipo="";
+        if(nc.tecnica && nc.tecnica!=="innesto") nc.innestoTipo="";
+        const ok=await saveLesion(lid,{crf:nc});
+        if(ok){
+          closeSheet(); toast("Scheda aggiornata");
+          if(sec.s==="Intervento" && vals.surgeryDate!==c.surgeryDate){ await syncAppts({...l, crf:nc}); if(vals.surgeryDate) toast("Visite T1–T"+(nc.surgeryDate<=T5_CUTOFF?"5":"4")+" aggiunte all'agenda"); }
+        }
+      };
+    });
+}
+function visitSheet(lid, k){
+  const l=lesion(lid); const vi=visitInfo(l,k); const v=((l.v||{})[k])||{};
+  openSheet(`<div class="sheet-h"><h3>${k} · ${esc(TP[k].l)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    ${vi.a?`<p class="small muted" style="margin-bottom:1rem">Finestra ${fmtS(vi.a)} – ${fmtS(vi.b)} · data ideale ${fmtS(vi.t)}</p>`:""}
+    <form id="vf"><div class="field"><label>Data della visita</label><input class="input" type="date" name="date" value="${esc(v.date||(k==="T0"?"":todayISO()))}"></div>
+      ${k!=="T0"?`<label class="check"><input type="checkbox" name="skipped" ${v.skipped?"checked":""}><span>Visita non eseguita (paziente assente o non raggiungibile)</span></label>`:""}
+      <div class="sheet-f">${v.date?`<button type="button" class="btn light plain" data-clear style="margin-right:auto">Cancella data</button>`:""}<button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const save=async(nv)=>{ const vv={...(l.v||{})}; vv[k]=nv; const ok=await saveLesion(lid,{v:vv}); if(ok){ closeSheet(); await syncAppts({...l, v:vv}); const ni=visitInfo({...l,v:vv},k); toast(ni.state==="outwin"?"Salvata: visita fuori finestra, registrala tra le deviazioni":"Visita registrata"); } };
+      const cl=b.querySelector("[data-clear]"); if(cl) cl.onclick=()=>save({date:"", skipped:false});
+      b.querySelector("#vf").onsubmit=e=>{ e.preventDefault(); if(!guardWrite()) return; const fd=new FormData(e.target); save({date:String(fd.get("date")||""), skipped:!!fd.get("skipped")}); };
+    });
+}
+function qSheet(lid, tp, sc){
+  const l=lesion(lid); const cur=qItems(l,tp,sc)||{};
+  let body;
+  if(sc==="POSAS"){
+    const row=(arr,i,lab,name)=>`<div class="field" style="margin-bottom:.7rem"><label>${esc(lab)}</label><input class="input" type="number" min="1" max="10" inputmode="numeric" name="${name}${i}" value="${esc((arr||[])[i]??"")}" placeholder="1–10"></div>`;
+    body=`<p class="small muted" style="margin-bottom:1rem">POSAS 2.0 come descritta nel protocollo: 6 voci da 1 a 10 per parte, totale 6–60 (più basso = più simile alla cute normale), più il giudizio globale.</p>
+      <div class="stat-lab" style="margin:0 0 .7rem .2rem">Osservatore</div><div class="row2">${POSAS_OBS.map((x,i)=>row(cur.obs,i,x,"o")).join("")}</div>
+      <div class="field"><label>Giudizio globale osservatore</label><input class="input" type="number" min="1" max="10" name="og" value="${esc(cur.obsG??"")}"></div>
+      <div class="stat-lab" style="margin:1.2rem 0 .7rem .2rem">Paziente</div><div class="row2">${POSAS_PAT.map((x,i)=>row(cur.pat,i,x,"p")).join("")}</div>
+      <div class="field"><label>Giudizio globale paziente</label><input class="input" type="number" min="1" max="10" name="pg" value="${esc(cur.patG??"")}"></div>
+      <div class="qbox" style="width:100%;margin:.4rem 0 0" id="pos-tot"></div>`;
+  } else if(sc==="AE"){
+    body=`<p class="small muted" style="margin-bottom:1rem">Checklist Adverse Effects del FACE-Q: inserisci le risposte grezze voce per voce, separate da virgola, nell'ordine del modulo.</p>
+      <div class="field"><label>Risposte</label><textarea class="input" name="raw" placeholder="Es. 1, 1, 2, 1, 1">${esc(cur.raw||"")}</textarea></div>`;
+  } else {
+    const n=FACEQ[sc].n;
+    body=`<p class="small muted" style="margin-bottom:1rem">${esc(FACEQ[sc].l)} · ${n} voci. Inserisci per ogni voce il numero della risposta scelta sul modulo cartaceo (risposta grezza): la conversione Rasch a 0–100 si fa in fase di analisi.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem">${Array.from({length:n},(_,i)=>`<div><label style="display:block;font-size:10.5px;color:var(--ink3);font-weight:600;margin:0 0 .3rem .2rem">${i+1}</label><input class="input" style="padding:.7rem;text-align:center" type="number" min="1" max="9" inputmode="numeric" name="i${i}" value="${esc((cur.items||[])[i]??"")}"></div>`).join("")}</div>
+      <div class="small" id="fq-miss" style="margin-top:1rem"></div>`;
+  }
+  openSheet(`<div class="sheet-h"><h3>${sc==="POSAS"?"POSAS":"FACE-Q "+sc} · ${tp}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="qf" autocomplete="off">${body}
+      <div class="field" style="margin-top:1rem"><label>Data di compilazione</label><input class="input" type="date" name="date" value="${esc(cur.date||todayISO())}"></div>
+      <div class="sheet-f"><button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const f=b.querySelector("#qf");
+      const upd=()=>{
+        if(sc==="POSAS"){ const fd=new FormData(f); const o=POSAS_OBS.map((_,i)=>fd.get("o"+i)), p=POSAS_PAT.map((_,i)=>fd.get("p"+i));
+          b.querySelector("#pos-tot").innerHTML=`<span class="ql">Totali</span><span class="qbadge ${sum6(o)?"ok":"na"}"><i></i>Osservatore ${sum6(o)??"—"}</span><span class="qbadge ${sum6(p)?"ok":"na"}"><i></i>Paziente ${sum6(p)??"—"}</span>`; }
+        else if(sc!=="AE"){ const fd=new FormData(f); const n=FACEQ[sc].n; const a=Array.from({length:n},(_,i)=>fd.get("i"+i)).filter(x=>x!=="").length;
+          const m=b.querySelector("#fq-miss"); m.style.color = (n-a)>=n/2 && a ? "var(--danger)" : "var(--ink3)";
+          m.textContent = a===n ? "Tutte le voci compilate." : `${n-a} voci mancanti${(n-a)>=n/2?" · troppe per l'imputazione (servono meno del 50% di mancanti)":" · verranno imputate con la media delle voci compilate"}`; }
+      };
+      f.addEventListener("input",upd); upd();
+      f.onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        if(l.status==="ritirato"){ toast("Consenso revocato: non si registrano altri dati."); return; }
+        const fd=new FormData(f); const num=x=>{ const v=String(x??"").trim(); return v===""?"":Number(v); };
+        let o={date:String(fd.get("date")||"")};
+        if(sc==="POSAS"){
+          o.obs=POSAS_OBS.map((_,i)=>num(fd.get("o"+i))); o.pat=POSAS_PAT.map((_,i)=>num(fd.get("p"+i))); o.obsG=num(fd.get("og")); o.patG=num(fd.get("pg"));
+          if([...o.obs,...o.pat,o.obsG,o.patG].some(v=>v!==""&&(v<1||v>10))){ toast("I valori POSAS vanno da 1 a 10"); return; }
+        } else if(sc==="AE") o.raw=String(fd.get("raw")||"").trim();
+        else o.items=Array.from({length:FACEQ[sc].n},(_,i)=>num(fd.get("i"+i)));
+        const q=JSON.parse(JSON.stringify(l.q||{})); q[tp]=q[tp]||{}; q[tp][sc]=o;
+        const ok=await saveLesion(lid,{q}); if(ok){ closeSheet(); toast("Questionario salvato"); }
+      };
+    });
+}
+function compSheet(lid, idx){
+  const l=lesion(lid); const arr=[...(l.comp||[])]; const x = idx!=null ? arr[idx] : {};
+  openSheet(`<div class="sheet-h"><h3>Complicanza</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="cpf"><div class="field"><label>Tipo</label><select class="input" name="type">${COMP_TYPES.map(o=>`<option ${x.type===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>
+      <div class="field"><label>Data</label><input class="input" type="date" name="date" value="${esc(x.date||todayISO())}"></div>
+      <div class="field"><label>Trattamento</label><input class="input" name="treat" maxlength="120" value="${esc(x.treat)}"></div>
+      <p class="small muted">Precoce o tardiva viene calcolato dalla data dell'intervento (entro 30 giorni = precoce).</p>
+      <div class="sheet-f">${idx!=null?`<button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina</button>`:""}<button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      const del=b.querySelector("[data-del]"); if(del) del.onclick=async()=>{ arr.splice(idx,1); await saveLesion(lid,{comp:arr}); closeSheet(); };
+      b.querySelector("#cpf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const date=String(fd.get("date")||""); const s=surg(l);
+        const phase = s&&date ? ((D(date)-D(s))/864e5 <= 30 ? "precoce" : "tardiva") : "";
+        const o={type:String(fd.get("type")), date, treat:String(fd.get("treat")||"").trim(), phase};
+        if(idx!=null) arr[idx]=o; else arr.push(o);
+        const ok=await saveLesion(lid,{comp:arr}); if(ok){ closeSheet(); toast("Complicanza registrata"); }
+      };
+    });
+}
+function devSheet(lid, preset){
+  const l=lesion(lid);
+  openSheet(`<div class="sheet-h"><h3>Deviazione · ${esc(l.code)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="dvf"><div class="field"><label>Tipo</label><select class="input" name="type">${DEV_TYPES.map(o=>`<option ${preset?.type===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>
+      <div class="field"><label>Descrizione</label><textarea class="input" name="note">${esc(preset?.note||"")}</textarea></div>
+      <div class="sheet-f"><button class="btn" type="submit">Registra<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("#dvf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const d={type:String(fd.get("type")), note:String(fd.get("note")||"").trim(), at:new Date().toISOString(), key:preset?.key||""};
+        const ok=await saveLesion(lid,{dev:[...(l.dev||[]), d]}); if(ok){ closeSheet(); toast("Deviazione registrata"); }
+      };
+    });
+}
+function statusSheet(lid){
+  const l=lesion(lid);
+  openSheet(`<div class="sheet-h"><h3>Stato · ${esc(l.code)}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="stf"><div class="field"><label>Stato nello studio</label><select class="input" name="status">${[["attivo","Attivo"],["completato","Follow-up completato"],["perso","Perso al follow-up"],["ritirato","Ritirato (consenso revocato)"]].map(([v,t])=>`<option value="${v}" ${l.status===v?"selected":""}>${t}</option>`).join("")}</select></div>
+    <div class="field"><label>Coorte</label><select class="input" name="cohort"><option value="AP" ${l.cohort!=="AA"?"selected":""}>AP · prospettica</option><option value="AA" ${l.cohort==="AA"?"selected":""}>AA · ambispettica</option></select></div>
+    <div class="sheet-f"><button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina scheda</button><button class="btn" type="submit">Salva<span class="ic">${ICON.arrow}</span></button></div></form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("[data-del]").onclick=async()=>{
+        if(!(await confirmSheet({title:"Eliminare la scheda "+l.code+"?", text:"Vengono eliminati la scheda, le sue foto e i suoi appuntamenti. Non si può annullare."}))) return;
+        for(const f of photosOfLesion(l)) await removePhoto(f,true);
+        for(const a of S.appts.filter(a=>a.lesionId===l.id)) await safe(()=>S.root.collection("appointments").doc(a.id).delete());
+        await safe(()=>lesRef(l.id).delete()); toast("Scheda eliminata"); go("study");
+      };
+      b.querySelector("#stf").onsubmit=async e=>{ e.preventDefault(); if(!guardWrite()) return; const fd=new FormData(e.target); const ok=await saveLesion(lid,{status:String(fd.get("status")), cohort:String(fd.get("cohort"))}); if(ok){ closeSheet(); toast("Stato aggiornato"); } };
+    });
+}
+
+/* ---------- study photos (with ghost overlay) ---------- */
+function studyPhotoSheet(lid, tp, proj){
+  const l=lesion(lid);
+  if(!consentOk(l)){ toast("Servono i consensi A, B e C1 prima di scattare foto di ricerca."); consentSheet(lid); return; }
+  if(!S.assets){ toast("Caricamento foto non disponibile in questa vista."); return; }
+  const prev = S.photos.filter(f=>f.lesionId===lid && f.proj===proj && f.tp!==tp).sort((a,b)=>(b.takenAt||"").localeCompare(a.takenAt||""))[0];
+  const existing = photosOfLesion(l,tp).filter(f=>f.proj===proj);
+  const name = `${l.code}_${tp}_${proj}${existing.length?"_"+(existing.length+1):""}.jpg`;
+  openSheet(`<div class="sheet-h"><h3>${esc(tp)} · ${esc((PROJ_ALL.find(p=>p[0]===proj)||[0,proj])[1])}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <div class="ai-warn" style="margin:0 0 1rem">Stesso apparecchio, stessa distanza, luce diffusa senza flash, sfondo neutro, <b>regolo millimetrato nel campo</b>. Inquadra solo la regione d'interesse e copri gli occhi se non coinvolti.</div>
+    ${prev?`<div class="stat-lab" style="margin:0 0 .5rem .2rem">Riferimento: ${esc(prev.studyName||prev.tp)}</div><div style="border-radius:1.2rem;overflow:hidden;background:var(--bg2)"><img src="${esc(src(prev))}" alt="" style="width:100%;max-height:220px;object-fit:contain"></div>`:""}
+    <div id="sp-chosen" class="hidden" style="margin-top:1rem">
+      <div class="stat-lab" style="margin:0 0 .5rem .2rem">${prev?"Controllo allineamento":"Anteprima"}</div>
+      <div style="position:relative;border-radius:1.2rem;overflow:hidden;background:#000"><img id="sp-new" alt="" style="width:100%;max-height:340px;object-fit:contain">${prev?`<img id="sp-ghost" src="${esc(src(prev))}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.4;pointer-events:none">`:""}</div>
+      ${prev?`<div class="field" style="margin-top:.8rem"><label>Trasparenza della foto precedente</label><input type="range" id="sp-op" min="0" max="100" value="40" style="width:100%;accent-color:var(--ink)"></div>`:""}
+    </div>
+    <div class="small muted" style="margin-top:1rem">Nome file: <b style="color:var(--ink)">${esc(name)}</b></div>
+    <div class="pick-row" style="margin-top:1rem" id="sp-pick">
+      <button class="pick" data-cam><span class="ic">${ICON.cam}</span><b>Scatta ora</b><span>Apre la fotocamera</span></button>
+      <button class="pick" data-lib><span class="ic">${ICON.lib}</span><b>Dalla libreria</b><span>Scegli una foto</span></button>
+    </div>
+    <div class="prog hidden" id="sp-prog"><i style="width:60%"></i></div>
+    <div class="sheet-f hidden" id="sp-f"><button class="btn light plain" data-retake>Rifai</button><button class="btn" data-save>Salva nell'archivio<span class="ic">${ICON.arrow}</span></button></div>`, b=>{
+      let file=null, url=null;
+      b.querySelector("[data-x]").onclick=()=>{ if(url) URL.revokeObjectURL(url); closeSheet(); };
+      const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+      inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; file=f; if(url) URL.revokeObjectURL(url); url=URL.createObjectURL(f);
+        b.querySelector("#sp-new").src=url; b.querySelector("#sp-chosen").classList.remove("hidden"); b.querySelector("#sp-pick").classList.add("hidden"); b.querySelector("#sp-f").classList.remove("hidden"); };
+      b.querySelector("[data-cam]").onclick=()=>{ inp.setAttribute("capture","environment"); inp.value=""; inp.click(); };
+      b.querySelector("[data-lib]").onclick=()=>{ inp.removeAttribute("capture"); inp.value=""; inp.click(); };
+      const op=b.querySelector("#sp-op"); if(op) op.oninput=()=>{ b.querySelector("#sp-ghost").style.opacity=op.value/100; };
+      b.querySelector("[data-retake]").onclick=()=>{ b.querySelector("#sp-pick").classList.remove("hidden"); b.querySelector("#sp-f").classList.add("hidden"); b.querySelector("#sp-chosen").classList.add("hidden"); };
+      b.querySelector("[data-save]").onclick=async()=>{
+        if(!file || !guardWrite()) return;
+        b.querySelector("[data-save]").disabled=true; b.querySelector("#sp-prog").classList.remove("hidden");
+        const date = tp==="T1" ? (surg(l)||todayISO()) : (((l.v||{})[tp]||{}).date || todayISO());
+        const ok = await uploadOne(file, {patientId:l.patientId, lesionId:l.id, tp, proj, studyName:name, folder:`${l.code} ${tp}`, area:[crf(l).sede,crf(l).unita].filter(Boolean).join(" · "), tags:["studio",tp.toLowerCase()], note:"", takenAt:new Date(date+"T12:00:00").toISOString()});
+        if(url) URL.revokeObjectURL(url);
+        closeSheet(); if(ok) toast("Foto salvata come "+name);
+      };
+    });
+}
+
+/* ---------- blind session ---------- */
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function startBlind(all){
+  const rater=($("#blind-rater")?.value||"").trim();
+  if(!rater){ toast("Inserisci il codice del valutatore"); return; }
+  S.blindRater=rater;
+  let pool=blindPool(); if(!all) pool=pool.filter(l=>!(l.blind&&sum6(l.blind.items)));
+  if(!pool.length){ toast("Nessun caso da valutare"); return; }
+  S.blindQ=shuffle(pool.map(l=>l.id)); S.blindI=0;
+  document.body.classList.add("blind-mode"); paintBlind();
+}
+function paintBlind(){
+  const el=$("#blind");
+  const id=S.blindQ[S.blindI]; const l=lesion(id);
+  if(!l){ endBlind(true); return; }
+  const ph=photosOfLesion(l,"T4").sort((a,b)=>(a.proj||"").localeCompare(b.proj||""));
+  el.innerHTML=`<div class="v-top"><button class="iconbtn" data-st="blind-exit" aria-label="Esci">${ICON.x}</button>
+      <div class="small" style="color:rgba(255,255,255,.7)">Caso ${S.blindI+1} di ${S.blindQ.length} · valutatore ${esc(S.blindRater)}</div><div style="width:42px"></div></div>
+    <div style="flex:1;overflow:auto;padding:0 1rem 1rem">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.6rem">${ph.map(f=>`<div style="border-radius:1.2rem;overflow:hidden;background:#000"><img src="${esc(src(f))}" alt="" style="width:100%;max-height:52dvh;object-fit:contain"></div>`).join("")}</div>
+      <form id="blf" style="max-width:640px;margin:1.4rem auto 0;background:#fff;color:var(--ink);border-radius:1.6rem;padding:1.4rem">
+        <div class="stat-lab" style="margin-bottom:.8rem">POSAS osservatore · 1 (cute normale) – 10 (peggior cicatrice)</div>
+        <div class="row2">${POSAS_OBS.map((x,i)=>`<div class="field" style="margin-bottom:.6rem"><label>${x}</label><input class="input" type="number" min="1" max="10" inputmode="numeric" name="o${i}" required></div>`).join("")}</div>
+        <div class="field"><label>Giudizio globale</label><input class="input" type="number" min="1" max="10" name="g"></div>
+        <div class="sheet-f" style="margin-top:1rem"><button class="btn" type="submit">${S.blindI+1<S.blindQ.length?"Salva e avanti":"Salva e termina"}<span class="ic">${ICON.arrow}</span></button></div>
+      </form></div>`;
+  el.classList.add("on"); el.scrollTop=0;
+  el.querySelector("#blf").onsubmit=async e=>{
+    e.preventDefault(); if(!guardWrite()) return;
+    const fd=new FormData(e.target); const items=POSAS_OBS.map((_,i)=>Number(fd.get("o"+i)));
+    if(items.some(v=>!(v>=1&&v<=10))){ toast("Valori da 1 a 10"); return; }
+    const g=fd.get("g")?Number(fd.get("g")):"";
+    const ok=await saveLesion(id,{blind:{items, g, rater:S.blindRater, at:new Date().toISOString()}});
+    if(!ok) return;
+    S.blindI++; if(S.blindI>=S.blindQ.length) endBlind(true); else paintBlind();
+  };
+}
+async function endBlind(done){
+  if(!done && !(await confirmSheet({title:"Uscire dalla sessione?", text:"Le valutazioni già salvate restano.", ok:"Esci", danger:false}))) return;
+  $("#blind").classList.remove("on"); document.body.classList.remove("blind-mode"); if(done) toast("Sessione completata"); render();
+}
+
+/* ---------- export ---------- */
+function csvCell(v){ if(v==null) return ""; v=String(v); return /[;"\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function toCSV(rows){ if(!rows.length) return ""; const cols=[...new Set(rows.flatMap(r=>Object.keys(r)))]; return "﻿"+[cols.join(";"), ...rows.map(r=>cols.map(c=>csvCell(r[c])).join(";"))].join("\r\n"); }
+function lesionRows(){
+  return [...S.lesions].sort((a,b)=>(a.code||"").localeCompare(b.code||"")).map(l=>{
+    const c=crf(l), cons=l.consent||{}; const r={codice:l.code, coorte:l.cohort, stato:l.status||"attivo", id_paziente: S.lesions.filter(x=>x.patientId===l.patientId).length>1 ? (S.lesions.filter(x=>x.patientId===l.patientId).map(x=>x.code).sort()[0]) : l.code};
+    CRF_KEYS.forEach(k=>r[k]=c[k]??"");
+    const comp=l.comp||[]; r.compl_precoci_n=comp.filter(x=>x.phase==="precoce").length; r.compl_tardive_n=comp.filter(x=>x.phase==="tardiva").length;
+    r.compl_dettaglio=comp.map(x=>`${x.type} (${x.phase||"?"} ${x.date||""}${x.treat?"; "+x.treat:""})`).join(" | ");
+    ["T0","T2","T3","T4","T5"].forEach(k=>{ const vi=visitInfo(l,k); r[`data_${k}`]=vi.date||""; if(k!=="T0") r[`${k}_in_finestra`]= vi.done ? (vi.inWindow?"sì":"no") : (vi.state==="na"?"n.a.":""); });
+    ["T4","T5"].forEach(k=>{ const p=qItems(l,k,"POSAS")||{};
+      POSAS_OBS.forEach((x,i)=>r[`POSAS_oss_${k}_${i+1}`]=(p.obs||[])[i]??""); r[`POSAS_oss_${k}_tot`]=sum6(p.obs)??""; r[`POSAS_oss_${k}_glob`]=p.obsG??"";
+      POSAS_PAT.forEach((x,i)=>r[`POSAS_paz_${k}_${i+1}`]=(p.pat||[])[i]??""); r[`POSAS_paz_${k}_tot`]=sum6(p.pat)??""; r[`POSAS_paz_${k}_glob`]=p.patG??""; });
+    const bl=l.blind||{}; POSAS_OBS.forEach((x,i)=>r[`POSAS_cieco_T4_${i+1}`]=(bl.items||[])[i]??""); r.POSAS_cieco_T4_tot=sum6(bl.items)??""; r.POSAS_cieco_T4_glob=bl.g??""; r.POSAS_cieco_valutatore=bl.rater||"";
+    Object.entries(Q_SCHED).forEach(([tp,scs])=>scs.forEach(sc=>{ if(sc==="POSAS") return; const q=qItems(l,tp,sc)||{};
+      if(sc==="AE") r[`FACEQ_AE_${tp}`]=q.raw||""; else for(let i=0;i<FACEQ[sc].n;i++) r[`FACEQ_${sc}_${tp}_${i+1}`]=(q.items||[])[i]??""; }));
+    ["A","B","C1","C2","C3","C4","recogn","recontact"].forEach(k=>r[`consenso_${k}`]=cons[k]?"sì":"no"); r.consenso_data=cons.date||""; r.revoca=cons.revoked||"";
+    r.qc_estratta=l.qc?.sel?"sì":"no"; r.qc_controllata=l.qc?.ok?"sì":"no"; r.deviazioni_n=(l.dev||[]).length;
+    return r;
+  });
+}
+async function saveFile(filename, data){
+  if(!S.downloads){ toast("Download non disponibile in questa vista"); return false; }
+  try{ await S.downloads.save({filename, data}); return true; }
+  catch(e){ if(e?.code!=="declined") toast("Download non riuscito"); return false; }
+}
+async function exportCSV(kind){
+  const d=todayISO();
+  if(kind==="lesions") return saveFile(`studio_lesioni_${d}.csv`, toCSV(lesionRows()) || "nessun dato");
+  if(kind==="screen") return saveFile(`registro_screening_${d}.csv`, toCSV(S.screen.map(x=>({data:x.date, riferimento:x.ref, sede:x.area, sospetto:x.suspect, tecnica_prevista:x.plannedTech, eleggibile:x.eligible, motivo_esclusione:x.excludeReason, consenso:x.consent, codice_arruolato:lesion(x.lesionId)?.code||"", note:x.note}))) || "nessun dato");
+  if(kind==="dev") return saveFile(`registro_deviazioni_${d}.csv`, toCSV(S.lesions.flatMap(l=>(l.dev||[]).map(x=>({codice:l.code, data:(x.at||"").slice(0,10), tipo:x.type, descrizione:x.note})))) || "nessun dato");
+}
+function loadZip(){ return window.JSZip ? Promise.resolve(window.JSZip) : new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; s.onload=()=>res(window.JSZip); s.onerror=rej; document.head.appendChild(s); }); }
+async function exportZip(kind){
+  const list = kind==="thesis" ? (S.thesisList||[]) : S.photos.filter(f=>f.lesionId);
+  if(!list.length){ toast("Nessuna foto da esportare"); return; }
+  toast("Preparo l'archivio…");
+  try{
+    const JSZip=await loadZip(); const z=new JSZip(); const used={};
+    for(const f of list){ let n=f.studyName || `${lesion(f.lesionId)?.code||"foto"}_${f.tp}_${f.proj}.jpg`; if(used[n]){ used[n]++; n=n.replace(/\.jpg$/,`_${used[n]}.jpg`); } else used[n]=1;
+      const r=await fetch(src(f)); z.file(n, await r.blob()); }
+    const blob=await z.generateAsync({type:"blob"});
+    await saveFile(kind==="thesis"?`foto_tesi_${todayISO()}.zip`:`archivio_foto_studio_${todayISO()}.zip`, blob);
+  }catch(e){ console.error(e); toast("Archivio non riuscito"); }
+}
+async function qcDraw(){
+  if(!guardWrite()) return;
+  const pool=S.lesions.filter(l=>!(l.qc&&l.qc.sel)); const n=Math.max(1, Math.ceil(S.lesions.length*0.1) - S.lesions.filter(l=>l.qc&&l.qc.sel).length);
+  if(!pool.length || n<=0){ toast("Il 10% è già stato estratto"); return; }
+  const pick=shuffle(pool).slice(0,n);
+  for(const l of pick) await saveLesion(l.id,{qc:{sel:true, ok:false, at:""}});
+  toast(`Estratte ${pick.length} schede`);
+}
+
+/* ---------- study click router ---------- */
+function studyAct(act, arg, el){
+  const lid=S.lid;
+  switch(act){
+    case "tab": S.stTab=arg; renderStudy(); window.scrollTo({top:0}); break;
+    case "open-lesion": closeViewer(); S.lid=arg; go("lesion"); break;
+    case "back": go("study"); break;
+    case "enroll": if(guardWrite()) enrollSheet(arg); break;
+    case "screen-new": if(guardWrite()) screenSheet(); break;
+    case "screen-edit": screenSheet(arg); break;
+    case "consent": consentSheet(lid); break;
+    case "status": statusSheet(lid); break;
+    case "crf": crfSheet(lid, arg); break;
+    case "visit": visitSheet(lid, arg); break;
+    case "q": { const [tp,sc]=arg.split("|"); qSheet(lid,tp,sc); break; }
+    case "photo": { const [tp,proj]=arg.split("|"); const l=lesion(lid); const ex=photosOfLesion(l,tp).filter(f=>f.proj===proj);
+      if(l.status==="ritirato"){ toast("Consenso revocato: non si scattano altre foto."); break; }
+      studyPhotoSheet(lid,tp,proj); break; }
+    case "comp-new": compSheet(lid); break;
+    case "comp-edit": compSheet(lid, Number(arg)); break;
+    case "dev-new": devSheet(lid); break;
+    case "dev-confirm": { const [id,key]=arg.split("|"); const l=lesion(id); const d=autoDeviations(l).find(x=>x.key===key); if(d) devSheet(id,d); break; }
+    case "blind-start": startBlind(false); break;
+    case "blind-start-all": startBlind(true); break;
+    case "blind-exit": endBlind(false); break;
+    case "csv": exportCSV(arg); break;
+    case "zip": exportZip(arg); break;
+    case "qc-draw": qcDraw(); break;
+    case "qc-toggle": { const l=lesion(arg); saveLesion(arg,{qc:{...l.qc, ok:el.checked, at:el.checked?todayISO():""}}); break; }
+  }
+}
+
+/* ================= ARCHIVIO LOCALE (IndexedDB) ================= */
+const LDB = (()=>{
+  let dbp=null;
+  const open=()=> dbp || (dbp=new Promise((res,rej)=>{
+    const r=indexedDB.open("lumen",1);
+    r.onupgradeneeded=()=>{ const d=r.result; if(!d.objectStoreNames.contains("docs")) d.createObjectStore("docs"); if(!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs"); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  }));
+  const wrap=e=>{ const n=(e&&e.name)||""; return {code: n==="QuotaExceededError"?"quota_exceeded":"unavailable", message:String(e&&e.message||e)}; };
+  async function run(store, mode, fn){
+    const d=await open();
+    return new Promise((res,rej)=>{
+      let out; const t=d.transaction(store,mode); const st=t.objectStore(store);
+      try{ out=fn(st); }catch(e){ rej(wrap(e)); return; }
+      t.oncomplete=()=>res(out && "result" in out ? out.result : out);
+      t.onerror=()=>rej(wrap(t.error)); t.onabort=()=>rej(wrap(t.error));
+    });
+  }
+  async function all(store){
+    const d=await open();
+    return new Promise((res,rej)=>{ const out=[]; const t=d.transaction(store,"readonly"); const c=t.objectStore(store).openCursor();
+      c.onsuccess=()=>{ const cur=c.result; if(cur){ out.push([cur.key,cur.value]); cur.continue(); } };
+      t.oncomplete=()=>res(out); t.onerror=()=>rej(wrap(t.error)); });
+  }
+  const mem={}; const subs={}; const urls={};
+  const colMap=c=> mem[c] || (mem[c]=new Map());
+  function snap(c){ const docs=[...colMap(c).entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([id,data])=>({id, exists:true, data:()=>data, metadata:{fromCache:false,hasPendingWrites:false}}));
+    return {docs, size:docs.length, empty:!docs.length, docChanges:()=>[], metadata:{fromCache:false, hasPendingWrites:false}}; }
+  function emit(c){ (subs[c]||[]).forEach(fn=>{ try{ fn(snap(c)); }catch(e){ console.error(e); } }); }
+  const rid=()=> Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+  async function load(){
+    Object.keys(mem).forEach(k=>delete mem[k]);
+    for(const [key,val] of await all("docs")){ const i=key.indexOf("/"); colMap(key.slice(0,i)).set(key.slice(i+1), val); }
+    Object.values(urls).forEach(u=>URL.revokeObjectURL(u)); Object.keys(urls).forEach(k=>delete urls[k]);
+    for(const [key,val] of await all("blobs")) urls[key]=URL.createObjectURL(val);
+  }
+  function docRef(c,id){
+    id = id || rid();
+    const key=c+"/"+id;
+    return { id, path:key,
+      get: async()=>{ const v=colMap(c).get(id); return {id, exists:!!v, data:()=>v, metadata:{fromCache:false}}; },
+      set: async data=>{ const v=JSON.parse(JSON.stringify(data)); await run("docs","readwrite",st=>st.put(v,key)); colMap(c).set(id,v); emit(c); },
+      update: async data=>{ const cur=colMap(c).get(id); if(!cur) throw {code:"invalid_argument", message:"missing"}; const v={...cur, ...JSON.parse(JSON.stringify(data))}; await run("docs","readwrite",st=>st.put(v,key)); colMap(c).set(id,v); emit(c); },
+      delete: async()=>{ await run("docs","readwrite",st=>st.delete(key)); colMap(c).delete(id); emit(c); }
+    };
+  }
+  const root = { collection: c => ({ path:c, doc: id=>docRef(c,id),
+    add: async data=>{ const r=docRef(c); await r.set(data); return r; },
+    onSnapshot:(next)=>{ (subs[c]=subs[c]||[]).push(next); setTimeout(()=>next(snap(c)),0); return ()=>{ subs[c]=(subs[c]||[]).filter(f=>f!==next); }; } }) };
+  const assets = {
+    upload: async blob=>{ const id="b"+rid(); await run("blobs","readwrite",st=>st.put(blob,id)); urls[id]=URL.createObjectURL(blob); return {id, url:"", sizeBytes:blob.size, contentType:blob.type}; },
+    delete: async id=>{ await run("blobs","readwrite",st=>st.delete(id)); if(urls[id]){ URL.revokeObjectURL(urls[id]); delete urls[id]; } }
+  };
+  async function dump(){ const docs={}; for(const [c,m] of Object.entries(mem)){ docs[c]={}; m.forEach((v,id)=>docs[c][id]=v); } return docs; }
+  async function getBlob(id){ return run("blobs","readonly",st=>st.get(id)); }
+  async function importAll(docs, blobs, replace){
+    if(replace){ await run("docs","readwrite",st=>st.clear()); await run("blobs","readwrite",st=>st.clear()); }
+    let nDocs=0, nBlobs=0;
+    for(const [c,m] of Object.entries(docs||{})) for(const [id,v] of Object.entries(m)){
+      const cur = replace ? null : colMap(c).get(id);
+      const newer = !cur || String(v.updatedAt||v.createdAt||"") >= String(cur.updatedAt||cur.createdAt||"");
+      if(newer){ await run("docs","readwrite",st=>st.put(v,c+"/"+id)); nDocs++; }
+    }
+    for(const [id,blob] of blobs){ if(replace || !urls[id]){ await run("blobs","readwrite",st=>st.put(blob,id)); nBlobs++; } }
+    await load(); Object.keys(subs).forEach(emit);
+    return {nDocs, nBlobs};
+  }
+  return {open, load, root, assets, urls, dump, getBlob, importAll};
+})();
+const blobURL = id => LDB.urls[id] || "";
+
+/* ---------- condivisione / download ---------- */
+const isTouch = () => matchMedia("(pointer:coarse)").matches;
+async function shareOrDownload(blob, filename){
+  const file = new File([blob], filename, {type: blob.type || "application/octet-stream"});
+  if(isTouch() && navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:filename}); return true; }
+    catch(e){ if(e && e.name==="AbortError") return false; }
+  }
+  const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u), 30000); return true;
+}
+const localDownloads = { save: async ({filename, data})=>{
+  const type = /\.csv$/.test(filename) ? "text/csv;charset=utf-8" : /\.zip$/.test(filename) ? "application/zip" : "application/octet-stream";
+  const blob = data instanceof Blob ? data : new Blob([data], {type});
+  const ok = await shareOrDownload(blob, filename); if(!ok) throw {code:"declined"}; return {status:"saved"};
+}};
+
+/* ---------- backup ---------- */
+const LS = { get:k=>{ try{ return localStorage.getItem("lumen."+k); }catch(e){ return null; } }, set:(k,v)=>{ try{ localStorage.setItem("lumen."+k, v); }catch(e){} } };
+const extOf = t => /png/.test(t)?"png": /webp/.test(t)?"webp": /gif/.test(t)?"gif":"jpg";
+async function exportBackup(){
+  toast("Preparo il backup…");
+  try{
+    const docs = await LDB.dump(); const z=new JSZip();
+    const ids = Object.keys(LDB.urls); const map={};
+    for(const id of ids){ const b=await LDB.getBlob(id); if(b){ const n=`foto/${id}.${extOf(b.type)}`; map[id]=n; z.file(n, b); } }
+    z.file("dati.json", JSON.stringify({app:"lumen", formato:1, esportatoIl:new Date().toISOString(), dispositivo:navigator.userAgent, docs, foto:map}, null, 1));
+    const blob = await z.generateAsync({type:"blob", compression:"STORE"});
+    const d=new Date(); const name=`lumen-backup-${todayISO()}_${pad2(d.getHours())}${pad2(d.getMinutes())}.zip`;
+    const ok = await shareOrDownload(blob, name);
+    if(ok){ LS.set("lastBackup", new Date().toISOString()); toast("Backup pronto"); render(); }
+  }catch(e){ console.error(e); toast("Backup non riuscito"); }
+}
+async function importBackup(file, replace){
+  try{
+    const z = await JSZip.loadAsync(file);
+    const meta = JSON.parse(await z.file("dati.json").async("string"));
+    if(meta.app!=="lumen") throw new Error("non è un backup di Lumen");
+    const blobs=[];
+    for(const [id,path] of Object.entries(meta.foto||{})){ const f=z.file(path); if(f){ const ext=path.split(".").pop(); blobs.push([id, new Blob([await f.async("arraybuffer")], {type: ext==="png"?"image/png":ext==="webp"?"image/webp":ext==="gif"?"image/gif":"image/jpeg"})]); } }
+    const r = await LDB.importAll(meta.docs, blobs, replace);
+    LS.set("lastImport", new Date().toISOString());
+    closeSheet(); toast(`Importati ${r.nDocs} elementi e ${r.nBlobs} foto`);
+  }catch(e){ console.error(e); toast("Il file non è un backup valido di Lumen"); }
+}
+async function storageInfo(){
+  let est=null, persisted=null;
+  try{ est = await navigator.storage.estimate(); }catch(e){}
+  try{ persisted = await navigator.storage.persisted(); }catch(e){}
+  return {est, persisted};
+}
+const mb = n => (n/1048576).toLocaleString("it-IT",{maximumFractionDigits:n>1073741824?0:1})+" MB";
+async function backupSheet(){
+  closeMenu();
+  const last=LS.get("lastBackup"); const {est, persisted}=await storageInfo();
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  openSheet(`<div class="sheet-h"><h3>Backup e dispositivi</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <p style="font-size:14.5px;color:var(--ink2)">Tutto resta su questo dispositivo, anche senza internet. Per spostare foto e schede sul computer esporta un backup e importalo nell'app sull'altro dispositivo (con AirDrop o col cavo).</p>
+    <div class="infos" style="margin:1.3rem 0 1.4rem">
+      <div><b>Ultimo backup</b>${last?fmtDate(last)+" "+new Date(last).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}):"Mai"}</div>
+      <div><b>Spazio usato</b>${est?mb(est.usage||0):"—"}</div>
+      <div><b>Archivio protetto</b>${persisted?"Sì":"No"}</div>
+    </div>
+    <div style="display:grid;gap:.6rem">
+      <button class="btn" data-bk="export">Esporta backup (ZIP)<span class="ic">${ICON.arrow}</span></button>
+      <button class="btn light" data-bk="import">Importa backup e unisci<span class="ic">${ICON.lib}</span></button>
+      <button class="btn light plain" data-bk="replace" style="color:var(--danger)">Importa e sostituisci tutto</button>
+    </div>
+    <div class="ai-warn">"Unisci" aggiunge le novità e tiene la versione più recente di ogni scheda. "Sostituisci" cancella l'archivio di questo dispositivo e lo rimpiazza con il backup.</div>
+    ${!standalone?`<div class="ai-warn" style="color:var(--ink2)"><b>Installa l'app.</b> Su iPhone: apri il sito in Safari, tocca Condividi e poi "Aggiungi alla schermata Home". Su Mac (Safari): menu File, "Aggiungi al Dock". Installata, l'app funziona offline e iOS non cancella i dati.</div>`:""}
+    ${!persisted?`<button class="chip" data-bk="persist" style="margin-top:1rem">Chiedi di proteggere l'archivio</button>`:""}`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("[data-bk=export]").onclick=exportBackup;
+      const pick=replace=>{ const i=document.createElement("input"); i.type="file"; i.accept=".zip,application/zip"; i.onchange=async()=>{ const f=i.files[0]; if(!f) return;
+        if(replace && !(await confirmSheet({title:"Sostituire tutto?", text:"L'archivio di questo dispositivo verrà cancellato e rimpiazzato dal backup. Non si può annullare.", ok:"Sostituisci"}))) return;
+        toast("Importazione in corso…"); importBackup(f, replace); }; i.click(); };
+      b.querySelector("[data-bk=import]").onclick=()=>pick(false);
+      b.querySelector("[data-bk=replace]").onclick=()=>pick(true);
+      const ps=b.querySelector("[data-bk=persist]"); if(ps) ps.onclick=async()=>{ let ok=false; try{ ok=await navigator.storage.persist(); }catch(e){} toast(ok?"Archivio protetto":"Il browser non l'ha concesso: installa l'app"); backupSheet(); };
+    });
+}
+
+/* ---------- boot ---------- */
+reveal();
+render();
+
+async function boot(){
+  try{ await LDB.open(); await LDB.load(); }
+  catch(e){ console.error(e); setStatus("bad","Archivio del dispositivo non disponibile."); showNotice("Il browser non permette di salvare dati (forse sei in navigazione privata). Apri Lumen in una finestra normale o dall'app installata."); render(); return; }
+  S.assets=LDB.assets; S.uid="local"; S.root=LDB.root; S.downloads=localDownloads;
+  try{ if(navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); }catch(e){}
+
+  let timer=setTimeout(()=>{ if(!(S.ready.p&&S.ready.f)) setStatus("bad","L'archivio non risponde ancora: i dati potrebbero non essere aggiornati."); },10000);
+  const settle=()=>{ if(S.ready.p && S.ready.f){ clearTimeout(timer); setStatus("ok","Archivio su questo dispositivo · funziona anche offline"); } };
+  const onErr=e=>{ clearTimeout(timer); console.error(e); S.ready.p=S.ready.f=true; setStatus("bad","Connessione all'archivio interrotta."); render(); };
+
+  S.root.collection("patients").onSnapshot(snap=>{
+    S.patients = snap.docs.filter(d=>d.exists).map(d=>({id:d.id, ...d.data()}));
+    if(!snap.metadata.fromCache){ S.ready.p=true; settle(); }
+    render();
+  }, onErr);
+  S.root.collection("lesions").onSnapshot(snap=>{ S.lesions = snap.docs.filter(d=>d.exists).map(d=>({id:d.id, ...d.data()})); render(); }, e=>console.error(e));
+  S.root.collection("screening").onSnapshot(snap=>{ S.screen = snap.docs.filter(d=>d.exists).map(d=>({id:d.id, ...d.data()})); render(); }, e=>console.error(e));
+  S.root.collection("appointments").onSnapshot(snap=>{
+    S.appts = snap.docs.filter(d=>d.exists).map(d=>({id:d.id, ...d.data()}));
+    render();
+  }, e=>console.error(e));
+  S.root.collection("photos").onSnapshot(snap=>{
+    S.photos = snap.docs.filter(d=>d.exists).map(d=>({id:d.id, ...d.data()}));
+    if(!snap.metadata.fromCache){ S.ready.f=true; settle(); }
+    render();
+    if($("#viewer").classList.contains("on") && !$("#v-single").classList.contains("hidden")){
+      S.viewerList = S.viewerList.map(f=>S.photos.find(x=>x.id===f.id)).filter(Boolean);
+      if(S.viewerIdx>=S.viewerList.length) S.viewerIdx=S.viewerList.length-1;
+      paintViewer();
+    }
+  }, onErr);
+}
+boot();
+if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost" || location.hostname==="127.0.0.1")){
+  navigator.serviceWorker.register("sw.js").catch(e=>console.warn(e));
+  let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(S.view==="home" && !document.querySelector(".sheet.on") && !reloaded && sessionStorage.getItem("lumen.swReady")){ reloaded=true; location.reload(); } sessionStorage.setItem("lumen.swReady","1"); });
+}
+})();
+</script>
+</body>
+</html>

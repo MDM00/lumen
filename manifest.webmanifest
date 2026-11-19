@@ -1,0 +1,17 @@
+{
+  "name": "Lumen — Archivio fotografico clinico",
+  "short_name": "Lumen",
+  "description": "Foto cliniche, cartelle, agenda e studio di tesi. Funziona offline, i dati restano sul dispositivo.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F3F4F6",
+  "theme_color": "#F3F4F6",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
