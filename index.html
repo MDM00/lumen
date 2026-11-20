@@ -445,7 +445,8 @@ body.blind-mode .nav{display:none}
     <li><a href="#" data-go="study"><small>03</small>Studio <em>tesi</em></a></li>
     <li><a href="#" data-act="new-patient"><small>04</small>Nuovo <em>paziente</em></a></li>
     <li><a href="#" data-act="backup"><small>05</small>Backup e <em>Mac</em></a></li>
-    <li><a href="#" data-act="privacy"><small>06</small>Privacy</a></li>
+    <li><a href="#" data-act="sync"><small>06</small><em>Sincronizzazione</em></a></li>
+    <li><a href="#" data-act="privacy"><small>07</small>Privacy</a></li>
   </ul>
   <div class="menu-foot">Lumen non è uno strumento diagnostico. Le decisioni cliniche restano del medico.</div>
 </div>
@@ -1494,6 +1495,7 @@ document.addEventListener("click", e=>{
     case "edit-note": { const p=patient(S.pid); const n=p&&(p.journal||[]).find(x=>x.id===t.dataset.arg); if(n) noteForm(n); break; }
     case "focus-search": go("home"); setTimeout(()=>{ const q=$("#q"); q.scrollIntoView({behavior:"smooth",block:"center"}); q.focus({preventScroll:true}); },120); break;
     case "backup": backupSheet(); break;
+    case "sync": syncSheet(); break;
     case "privacy": closeMenu(); openSheet(`
       <div class="sheet-h"><h3>Privacy e consenso</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
       <div style="font-size:14.5px;color:var(--ink2);display:grid;gap:.9rem">
@@ -2410,8 +2412,8 @@ function studyAct(act, arg, el){
 const LDB = (()=>{
   let dbp=null;
   const open=()=> dbp || (dbp=new Promise((res,rej)=>{
-    const r=indexedDB.open("lumen",1);
-    r.onupgradeneeded=()=>{ const d=r.result; if(!d.objectStoreNames.contains("docs")) d.createObjectStore("docs"); if(!d.objectStoreNames.contains("blobs")) d.createObjectStore("blobs"); };
+    const r=indexedDB.open("lumen",2);
+    r.onupgradeneeded=()=>{ const d=r.result; for(const n of ["docs","blobs","sync","meta"]) if(!d.objectStoreNames.contains(n)) d.createObjectStore(n); };
     r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
   }));
   const wrap=e=>{ const n=(e&&e.name)||""; return {code: n==="QuotaExceededError"?"quota_exceeded":"unavailable", message:String(e&&e.message||e)}; };
@@ -2436,6 +2438,10 @@ const LDB = (()=>{
     return {docs, size:docs.length, empty:!docs.length, docChanges:()=>[], metadata:{fromCache:false, hasPendingWrites:false}}; }
   function emit(c){ (subs[c]||[]).forEach(fn=>{ try{ fn(snap(c)); }catch(e){ console.error(e); } }); }
   const rid=()=> Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+  /* registro modifiche per la sincronizzazione: chiave -> {ts, dirty, del} */
+  let lastTs=0; const nowTs=()=>{ lastTs=Math.max(Date.now(), lastTs+1); return lastTs; };
+  const changeFns=[]; const changed=()=>changeFns.forEach(f=>{ try{ f(); }catch(e){} });
+  async function stamp(key, del, ts){ await run("sync","readwrite",st=>st.put({ts:ts||nowTs(), dirty:1, del:!!del}, key)); changed(); }
   async function load(){
     Object.keys(mem).forEach(k=>delete mem[k]);
     for(const [key,val] of await all("docs")){ const i=key.indexOf("/"); colMap(key.slice(0,i)).set(key.slice(i+1), val); }
@@ -2447,17 +2453,17 @@ const LDB = (()=>{
     const key=c+"/"+id;
     return { id, path:key,
       get: async()=>{ const v=colMap(c).get(id); return {id, exists:!!v, data:()=>v, metadata:{fromCache:false}}; },
-      set: async data=>{ const v=JSON.parse(JSON.stringify(data)); await run("docs","readwrite",st=>st.put(v,key)); colMap(c).set(id,v); emit(c); },
-      update: async data=>{ const cur=colMap(c).get(id); if(!cur) throw {code:"invalid_argument", message:"missing"}; const v={...cur, ...JSON.parse(JSON.stringify(data))}; await run("docs","readwrite",st=>st.put(v,key)); colMap(c).set(id,v); emit(c); },
-      delete: async()=>{ await run("docs","readwrite",st=>st.delete(key)); colMap(c).delete(id); emit(c); }
+      set: async data=>{ const v=JSON.parse(JSON.stringify(data)); await run("docs","readwrite",st=>st.put(v,key)); colMap(c).set(id,v); emit(c); await stamp(key); },
+      update: async data=>{ const cur=colMap(c).get(id); if(!cur) throw {code:"invalid_argument", message:"missing"}; const v={...cur, ...JSON.parse(JSON.stringify(data))}; await run("docs","readwrite",st=>st.put(v,key)); colMap(c).set(id,v); emit(c); await stamp(key); },
+      delete: async()=>{ await run("docs","readwrite",st=>st.delete(key)); colMap(c).delete(id); emit(c); await stamp(key,true); }
     };
   }
   const root = { collection: c => ({ path:c, doc: id=>docRef(c,id),
     add: async data=>{ const r=docRef(c); await r.set(data); return r; },
     onSnapshot:(next)=>{ (subs[c]=subs[c]||[]).push(next); setTimeout(()=>next(snap(c)),0); return ()=>{ subs[c]=(subs[c]||[]).filter(f=>f!==next); }; } }) };
   const assets = {
-    upload: async blob=>{ const id="b"+rid(); await run("blobs","readwrite",st=>st.put(blob,id)); urls[id]=URL.createObjectURL(blob); return {id, url:"", sizeBytes:blob.size, contentType:blob.type}; },
-    delete: async id=>{ await run("blobs","readwrite",st=>st.delete(id)); if(urls[id]){ URL.revokeObjectURL(urls[id]); delete urls[id]; } }
+    upload: async blob=>{ const id="b"+rid(); await run("blobs","readwrite",st=>st.put(blob,id)); urls[id]=URL.createObjectURL(blob); await stamp("blob:"+id); return {id, url:"", sizeBytes:blob.size, contentType:blob.type}; },
+    delete: async id=>{ await run("blobs","readwrite",st=>st.delete(id)); if(urls[id]){ URL.revokeObjectURL(urls[id]); delete urls[id]; } await stamp("blob:"+id,true); }
   };
   async function dump(){ const docs={}; for(const [c,m] of Object.entries(mem)){ docs[c]={}; m.forEach((v,id)=>docs[c][id]=v); } return docs; }
   async function getBlob(id){ return run("blobs","readonly",st=>st.get(id)); }
@@ -2467,13 +2473,35 @@ const LDB = (()=>{
     for(const [c,m] of Object.entries(docs||{})) for(const [id,v] of Object.entries(m)){
       const cur = replace ? null : colMap(c).get(id);
       const newer = !cur || String(v.updatedAt||v.createdAt||"") >= String(cur.updatedAt||cur.createdAt||"");
-      if(newer){ await run("docs","readwrite",st=>st.put(v,c+"/"+id)); nDocs++; }
+      if(newer){ await run("docs","readwrite",st=>st.put(v,c+"/"+id)); await stamp(c+"/"+id); nDocs++; }
     }
-    for(const [id,blob] of blobs){ if(replace || !urls[id]){ await run("blobs","readwrite",st=>st.put(blob,id)); nBlobs++; } }
+    for(const [id,blob] of blobs){ if(replace || !urls[id]){ await run("blobs","readwrite",st=>st.put(blob,id)); await stamp("blob:"+id); nBlobs++; } }
     await load(); Object.keys(subs).forEach(emit);
     return {nDocs, nBlobs};
   }
-  return {open, load, root, assets, urls, dump, getBlob, importAll};
+  /* funzioni usate dalla sincronizzazione */
+  const syncGet = key => run("sync","readonly",st=>st.get(key));
+  const syncPut = (key,v) => run("sync","readwrite",st=>st.put(v,key));
+  const syncAll = () => all("sync");
+  const metaGet = k => run("meta","readonly",st=>st.get(k));
+  const metaSet = (k,v) => run("meta","readwrite",st=>st.put(v,k));
+  const metaDel = k => run("meta","readwrite",st=>st.delete(k));
+  async function applyDoc(key, val, ts){
+    const i=key.indexOf("/"), c=key.slice(0,i), id=key.slice(i+1);
+    if(val==null){ await run("docs","readwrite",st=>st.delete(key)); colMap(c).delete(id); }
+    else { await run("docs","readwrite",st=>st.put(val,key)); colMap(c).set(id,val); }
+    await syncPut(key,{ts, dirty:0, del:val==null}); emit(c);
+  }
+  async function applyBlob(id, blob, ts){
+    if(blob==null){ await run("blobs","readwrite",st=>st.delete(id)); if(urls[id]){ URL.revokeObjectURL(urls[id]); delete urls[id]; } }
+    else { await run("blobs","readwrite",st=>st.put(blob,id)); if(urls[id]) URL.revokeObjectURL(urls[id]); urls[id]=URL.createObjectURL(blob); }
+    await syncPut("blob:"+id,{ts, dirty:0, del:blob==null});
+  }
+  const rerender = () => Object.keys(subs).forEach(emit);
+  async function docKeys(){ return (await all("docs")).map(([k,v])=>[k,v]); }
+  const blobIds = () => Object.keys(urls);
+  const getDoc = key => run("docs","readonly",st=>st.get(key));
+  return {open, load, root, assets, urls, dump, getBlob, importAll, syncGet, syncPut, syncAll, metaGet, metaSet, metaDel, applyDoc, applyBlob, rerender, docKeys, blobIds, getDoc, onChange:f=>changeFns.push(f)};
 })();
 const blobURL = id => LDB.urls[id] || "";
 
@@ -2565,6 +2593,210 @@ async function backupSheet(){
     });
 }
 
+/* ================= SINCRONIZZAZIONE CIFRATA (Supabase) =================
+   I dati vengono cifrati sul dispositivo (AES-GCM 256, chiave ricavata dalla
+   frase di cifratura con PBKDF2) prima di essere inviati: il server vede solo
+   testo illeggibile. La frase di cifratura non lascia mai il dispositivo. */
+/* progetto Supabase di Lumen (la chiave "publishable" è pubblica per natura: i dati sono protetti dalle regole RLS e dalla cifratura) */
+const SUPA_URL = LS.get("supaUrl") || "https://ydokhxgyoaucmcbmunbf.supabase.co";
+const SUPA_KEY = LS.get("supaKey") || "sb_publishable_8sD3wBr5gOPnB_xFpOLyxA_Z7KnCnM0";
+const SY = { cfg:null, aes:null, mac:null, busy:false, again:false, timer:null, last:null, err:"", pending:0, progress:"" };
+const te=new TextEncoder(), td=new TextDecoder();
+const b64 = buf => { const u=new Uint8Array(buf); let s=""; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
+const hex = buf => [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,"0")).join("");
+async function deriveKeys(phrase, saltB64, iter){
+  const base=await crypto.subtle.importKey("raw", te.encode(phrase), "PBKDF2", false, ["deriveBits"]);
+  const bits=new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2", salt:unb64(saltB64), iterations:iter, hash:"SHA-256"}, base, 512));
+  const aes=await crypto.subtle.importKey("raw", bits.slice(0,32), "AES-GCM", false, ["encrypt","decrypt"]);
+  const mac=await crypto.subtle.importKey("raw", bits.slice(32), {name:"HMAC", hash:"SHA-256"}, false, ["sign"]);
+  return {aes, mac};
+}
+async function enc(bytes){ const iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM", iv}, SY.aes, bytes); const out=new Uint8Array(12+ct.byteLength); out.set(iv); out.set(new Uint8Array(ct),12); return out; }
+async function dec(bytes){ bytes=new Uint8Array(bytes); return new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM", iv:bytes.slice(0,12)}, SY.aes, bytes.slice(12))); }
+async function rkey(localKey){ return hex(await crypto.subtle.sign("HMAC", SY.mac, te.encode(localKey))).slice(0,40); }
+
+/* --- accesso al server --- */
+async function supa(path, opt={}, retry=true){
+  const c=SY.cfg; if(!c) throw new Error("Sincronizzazione non attiva");
+  if(!c.access || Date.now()>c.exp-60000) await refreshToken();
+  const h={apikey:c.key, Authorization:"Bearer "+c.access, ...(opt.headers||{})};
+  const r=await fetch(c.url+path, {...opt, headers:h});
+  if(r.status===401 && retry){ c.exp=0; return supa(path,opt,false); }
+  if(!r.ok){ let m=""; try{ m=(await r.text()).slice(0,200); }catch(e){} throw new Error("Server "+r.status+" "+m); }
+  return r;
+}
+async function authCall(url, key, grant, body){
+  const r=await fetch(url+"/auth/v1/token?grant_type="+grant, {method:"POST", headers:{apikey:key, "Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw Object.assign(new Error(j.error_description||j.msg||j.message||("Accesso non riuscito ("+r.status+")")), {auth:true});
+  return j;
+}
+async function refreshToken(){
+  const c=SY.cfg; const j=await authCall(c.url, c.key, "refresh_token", {refresh_token:c.refresh});
+  c.access=j.access_token; c.refresh=j.refresh_token; c.exp=Date.now()+(j.expires_in||3600)*1000; await LDB.metaSet("sync", c);
+}
+async function putRows(rows){ for(let i=0;i<rows.length;i+=40) await supa("/rest/v1/rpc/lumen_put", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({items:rows.slice(i,i+40)})}); }
+
+/* --- attivazione --- */
+async function syncEnable({url,key,email,password,phrase}){
+  url=url.replace(/\/+$/,"");
+  const j=await authCall(url, key, "password", {email, password});
+  SY.cfg={url, key, email, uid:j.user.id, access:j.access_token, refresh:j.refresh_token, exp:Date.now()+(j.expires_in||3600)*1000, lastSeq:0};
+  const r=await supa("/rest/v1/lumen_items?select=data&key=eq.__check");
+  const rows=await r.json(); let keys;
+  if(rows.length){
+    const chk=JSON.parse(rows[0].data);
+    keys=await deriveKeys(phrase, chk.salt, chk.iter); SY.aes=keys.aes; SY.mac=keys.mac;
+    try{ const t=td.decode(await dec(unb64(chk.check))); if(t!=="lumen-ok") throw 0; }
+    catch(e){ SY.cfg=null; SY.aes=SY.mac=null; throw Object.assign(new Error("Frase di cifratura sbagliata: deve essere la stessa usata sull'altro dispositivo."),{phrase:true}); }
+  } else {
+    const salt=b64(crypto.getRandomValues(new Uint8Array(16))), iter=310000;
+    keys=await deriveKeys(phrase, salt, iter); SY.aes=keys.aes; SY.mac=keys.mac;
+    const check=b64(await enc(te.encode("lumen-ok")));
+    await putRows([{key:"__check", ts:1, deleted:false, data:JSON.stringify({salt, iter, check})}]);
+  }
+  /* segna da inviare tutto ciò che non è mai stato sincronizzato, con la data di ultima modifica nota */
+  for(const [k,v] of await LDB.docKeys()){ if(!(await LDB.syncGet(k))) await LDB.syncPut(k,{ts:Date.parse(v.updatedAt||v.createdAt||"")||1, dirty:1, del:false}); }
+  for(const id of LDB.blobIds()){ if(!(await LDB.syncGet("blob:"+id))) await LDB.syncPut("blob:"+id,{ts:1, dirty:1, del:false}); }
+  await LDB.metaSet("sync", SY.cfg); await LDB.metaSet("syncKeys", keys);
+  syncSoon(0);
+}
+async function syncDisable(){ SY.cfg=null; SY.aes=SY.mac=null; await LDB.metaDel("sync"); await LDB.metaDel("syncKeys"); LS.set("lastSync",""); syncStatus(); }
+
+/* --- un giro di sincronizzazione: prima ricevo, poi invio --- */
+async function syncRun(){
+  if(!SY.cfg || !SY.aes) return;
+  if(SY.busy){ SY.again=true; return; }
+  if(!navigator.onLine){ SY.err="offline"; syncStatus(); return; }
+  SY.busy=true; SY.err=""; syncStatus();
+  try{
+    /* 1. ricevo le novità */
+    let got=0;
+    for(;;){
+      const r=await supa(`/rest/v1/lumen_items?select=key,ts,deleted,data,seq&seq=gt.${SY.cfg.lastSeq||0}&order=seq.asc&limit=200`);
+      const rows=await r.json(); if(!rows.length) break;
+      for(const row of rows){
+        if(row.key.startsWith("__")) { SY.cfg.lastSeq=Math.max(SY.cfg.lastSeq||0,row.seq); continue; }
+        const payload=JSON.parse(td.decode(await dec(unb64(row.data))));
+        const lk=payload.k, cur=await LDB.syncGet(lk);
+        if(!cur || row.ts>cur.ts){
+          if(lk.startsWith("blob:")){
+            const id=lk.slice(5);
+            if(row.deleted) await LDB.applyBlob(id,null,row.ts);
+            else { SY.progress="Ricevo foto…"; syncStatus();
+              const br=await supa(`/storage/v1/object/authenticated/lumen/${SY.cfg.uid}/${row.key}`);
+              const bytes=await dec(await br.arrayBuffer());
+              await LDB.applyBlob(id, new Blob([bytes],{type:payload.t||"image/jpeg"}), row.ts); }
+          } else await LDB.applyDoc(lk, row.deleted?null:payload.v, row.ts);
+          got++;
+        }
+        SY.cfg.lastSeq=Math.max(SY.cfg.lastSeq||0,row.seq);
+      }
+      await LDB.metaSet("sync", SY.cfg);
+      if(rows.length<200) break;
+    }
+    if(got) LDB.rerender();
+    /* 2. invio le mie modifiche */
+    const dirty=(await LDB.syncAll()).filter(([k,v])=>v.dirty);
+    let n=0;
+    const docRows=[];
+    for(const [k,v] of dirty){
+      const rk=await rkey(k);
+      if(k.startsWith("blob:")){
+        const id=k.slice(5);
+        if(!v.del){ const blob=await LDB.getBlob(id); if(blob){
+          SY.progress=`Invio foto ${++n}…`; syncStatus();
+          const ct=await enc(new Uint8Array(await blob.arrayBuffer()));
+          await supa(`/storage/v1/object/lumen/${SY.cfg.uid}/${rk}`, {method:"POST", headers:{"Content-Type":"application/octet-stream","x-upsert":"true"}, body:ct}); }
+          await putRows([{key:rk, ts:v.ts, deleted:false, data:b64(await enc(te.encode(JSON.stringify({k, t:blob?blob.type:""}))))}]);
+        } else {
+          await putRows([{key:rk, ts:v.ts, deleted:true, data:b64(await enc(te.encode(JSON.stringify({k}))))}]);
+          try{ await supa(`/storage/v1/object/lumen/${SY.cfg.uid}/${rk}`, {method:"DELETE"}); }catch(e){}
+        }
+        await clearDirty(k, v.ts);
+      } else {
+        const val=v.del?null:await LDB.getDoc(k);
+        docRows.push([k,v.ts,{key:rk, ts:v.ts, deleted:!!v.del||val==null, data:b64(await enc(te.encode(JSON.stringify({k, v:val}))))}]);
+      }
+    }
+    if(docRows.length){ await putRows(docRows.map(x=>x[2])); for(const [k,ts] of docRows) await clearDirty(k,ts); }
+    SY.last=new Date(); LS.set("lastSync", SY.last.toISOString());
+  }catch(e){ console.error(e); SY.err = e.auth ? "Accesso scaduto: riattiva la sincronizzazione" : (navigator.onLine ? "Sincronizzazione non riuscita, riprovo più tardi" : "offline"); }
+  SY.busy=false; SY.progress="";
+  await countPending(); syncStatus();
+  if(SY.again){ SY.again=false; syncSoon(1500); }
+}
+async function clearDirty(k, ts){ const cur=await LDB.syncGet(k); if(cur && cur.ts===ts) await LDB.syncPut(k,{...cur, dirty:0}); }
+async function countPending(){ try{ SY.pending=(await LDB.syncAll()).filter(([k,v])=>v.dirty).length; }catch(e){} }
+function syncSoon(ms){ if(!SY.cfg) return; clearTimeout(SY.timer); SY.timer=setTimeout(syncRun, ms==null?4000:ms); }
+function syncStatus(){
+  if(!SY.cfg){ return; }
+  const t = SY.busy ? (SY.progress||"Sincronizzazione in corso…")
+    : SY.err==="offline" ? "Offline · le modifiche partiranno quando torna internet"
+    : SY.err ? SY.err
+    : SY.last ? "Sincronizzato alle "+SY.last.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})+(SY.pending?` · ${SY.pending} in attesa`:"")
+    : "Sincronizzazione attiva";
+  setStatus(SY.err && SY.err!=="offline" ? "bad" : "ok", t);
+  const el=document.getElementById("sync-state"); if(el) el.textContent=t;
+}
+async function syncInit(){
+  try{
+    const c=await LDB.metaGet("sync"), k=await LDB.metaGet("syncKeys");
+    if(c && k){ SY.cfg=c; SY.aes=k.aes; SY.mac=k.mac; const l=LS.get("lastSync"); if(l) SY.last=new Date(l); }
+  }catch(e){ console.error(e); }
+  LDB.onChange(()=>syncSoon());
+  if(!SY.cfg) return;
+  await countPending(); syncStatus(); syncSoon(800);
+  addEventListener("online", ()=>syncSoon(500));
+  document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") syncSoon(300); });
+  setInterval(()=>{ if(document.visibilityState==="visible") syncRun(); }, 120000);
+}
+function syncSheet(){
+  closeMenu();
+  if(SY.cfg){
+    openSheet(`<div class="sheet-h"><h3>Sincronizzazione</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+      <p style="font-size:14.5px;color:var(--ink2)">Attiva su questo dispositivo con l'account <b>${esc(SY.cfg.email)}</b>. Ogni volta che apri Lumen con internet, le modifiche vengono cifrate qui e inviate; quelle fatte sugli altri dispositivi vengono scaricate.</p>
+      <div class="infos" style="margin:1.2rem 0"><div><b>Stato</b><span id="sync-state"></span></div></div>
+      <div style="display:grid;gap:.6rem">
+        <button class="btn" data-sy="now">Sincronizza ora<span class="ic">${ICON.arrow}</span></button>
+        <button class="btn light plain" data-sy="off" style="color:var(--danger)">Disattiva su questo dispositivo</button>
+      </div>
+      <div class="ai-warn">Disattivando, i dati restano su questo dispositivo e sul server; semplicemente smette di sincronizzare.</div>`, b=>{
+        b.querySelector("[data-x]").onclick=closeSheet; syncStatus();
+        b.querySelector("[data-sy=now]").onclick=()=>syncRun();
+        b.querySelector("[data-sy=off]").onclick=async()=>{ if(await confirmSheet({title:"Disattivare la sincronizzazione?", text:"Questo dispositivo smetterà di inviare e ricevere modifiche. I dati non vengono cancellati.", ok:"Disattiva"})){ await syncDisable(); setStatus("ok","Archivio su questo dispositivo · funziona anche offline"); toast("Sincronizzazione disattivata"); } };
+      });
+    return;
+  }
+  openSheet(`<div class="sheet-h"><h3>Sincronizzazione</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <p style="font-size:14.5px;color:var(--ink2)">Tiene allineati iPhone e Mac da soli, quando c'è internet. Tutto viene cifrato su questo dispositivo con la tua <b>frase di cifratura</b> prima di partire: il server riceve solo dati illeggibili.</p>
+    <form id="syf" autocomplete="on" style="margin-top:1rem">
+      <div class="field" ${SUPA_URL&&SUPA_KEY?'style="display:none"':''}><label>Indirizzo del progetto</label><input class="input" name="url" value="${esc(SUPA_URL)}" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field" ${SUPA_URL&&SUPA_KEY?'style="display:none"':''}><label>Chiave pubblica (anon)</label><input class="input" name="key" value="${esc(SUPA_KEY)}"></div>
+      <div class="field"><label>Email dell'account</label><input class="input" type="email" name="email" autocomplete="username" required></div>
+      <div class="field"><label>Password dell'account</label><input class="input" type="password" name="password" autocomplete="current-password" required></div>
+      <div class="field"><label>Frase di cifratura</label><input class="input" type="password" name="phrase" autocomplete="new-password" required minlength="10" placeholder="Almeno 10 caratteri, diversa dalla password"></div>
+      <div class="field"><label>Ripeti la frase di cifratura</label><input class="input" type="password" name="phrase2" autocomplete="new-password" required></div>
+      <div class="ai-warn">Usa la <b>stessa frase</b> su tutti i dispositivi. Se la dimentichi, i dati sul server non si possono più leggere (quelli sui dispositivi restano).</div>
+      <div class="sheet-f"><button class="btn" type="submit">Attiva<span class="ic">${ICON.arrow}</span></button></div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      b.querySelector("#syf").onsubmit=async e=>{
+        e.preventDefault(); const fd=new FormData(e.target); const g=n=>String(fd.get(n)||"").trim();
+        if(String(fd.get("phrase"))!==String(fd.get("phrase2"))){ toast("Le due frasi di cifratura non coincidono"); return; }
+        const url=g("url")||SUPA_URL, key=g("key")||SUPA_KEY;
+        if(!/^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost)[:/])/.test(url)||!key){ toast("Manca l'indirizzo o la chiave del progetto"); return; }
+        const btn=e.target.querySelector("[type=submit]"); btn.disabled=true; toast("Attivo la sincronizzazione…");
+        try{ await syncEnable({url, key, email:g("email"), password:String(fd.get("password")), phrase:String(fd.get("phrase"))});
+          addEventListener("online", ()=>syncSoon(500));
+          document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") syncSoon(300); });
+          closeSheet(); toast("Sincronizzazione attiva"); }
+        catch(err){ console.error(err); btn.disabled=false; toast(err.auth?"Email o password dell'account sbagliate":err.phrase?err.message:"Attivazione non riuscita: "+(err.message||"errore")); }
+      };
+    });
+}
+
 /* ---------- boot ---------- */
 reveal();
 render();
@@ -2576,7 +2808,8 @@ async function boot(){
   try{ if(navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); }catch(e){}
 
   let timer=setTimeout(()=>{ if(!(S.ready.p&&S.ready.f)) setStatus("bad","L'archivio non risponde ancora: i dati potrebbero non essere aggiornati."); },10000);
-  const settle=()=>{ if(S.ready.p && S.ready.f){ clearTimeout(timer); setStatus("ok","Archivio su questo dispositivo · funziona anche offline"); } };
+  const settle=()=>{ if(S.ready.p && S.ready.f){ clearTimeout(timer); if(SY.cfg) syncStatus(); else setStatus("ok","Archivio su questo dispositivo · funziona anche offline"); } };
+  syncInit();
   const onErr=e=>{ clearTimeout(timer); console.error(e); S.ready.p=S.ready.f=true; setStatus("bad","Connessione all'archivio interrotta."); render(); };
 
   S.root.collection("patients").onSnapshot(snap=>{
