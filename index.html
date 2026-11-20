@@ -354,6 +354,12 @@ body.blind-mode .nav{display:none}
 .link-hint.ok{background:var(--accent-soft);color:var(--accent)}
 .link-hint.no{background:var(--bg);color:var(--ink3)}
 .p-ap{margin-top:3.5rem}
+.nt-list{display:grid;gap:.8rem}
+.nt{border:1px solid var(--line,rgba(0,0,0,.08));border-radius:1.1rem;padding:1rem 1.1rem}
+.nt-h{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem}
+.nt-d{font-size:13px;font-weight:600;color:var(--accent)}
+.nt-h .chip{margin-left:auto;padding:.3rem .7rem;font-size:12.5px}
+.nt-t{white-space:pre-wrap;font-size:15px;line-height:1.55;overflow-wrap:anywhere}
 .day-title{font-size:1.25rem;font-weight:700;letter-spacing:-.03em;text-transform:capitalize}
 @media (max-width:900px){ .ag-layout{grid-template-columns:1fr} }
 @media (max-width:767px){ .day{border-radius:.8rem;font-size:13px} .cal{gap:.2rem} .cal-head .m{font-size:1.3rem} }
@@ -528,6 +534,14 @@ body.blind-mode .nav{display:none}
         </div>
         <div class="small hidden" id="cmp-hint" style="margin:-.4rem 0 1rem;color:var(--accent);font-weight:500">Tocca due foto per confrontarle.</div>
         <div class="grid" id="grid"></div>
+
+        <div class="p-ap">
+          <div class="toolbar">
+            <h2 class="h2" style="font-size:clamp(1.6rem,3vw,2.2rem)">Le mie <em>note</em></h2>
+            <button class="chip" data-act="new-note"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>Nota</button>
+          </div>
+          <div class="bezel"><div class="core pad"><div class="nt-list" id="p-notes"></div></div></div>
+        </div>
 
         <div class="p-ap">
           <div class="toolbar">
@@ -744,7 +758,7 @@ function renderHome(){
 
   let list = [...S.patients];
   if(q){ list = list.filter(p=>{
-      const hay=[p.name,p.code,p.notes,...(p.folders||[]), p.postop==="da_compilare"?"questionario da compilare non compilato":p.postop==="compilato"?"questionario compilato":""].join(" ").toLowerCase();
+      const hay=[p.name,p.code,p.notes,...(p.journal||[]).map(n=>n.text),...(p.folders||[]), p.postop==="da_compilare"?"questionario da compilare non compilato":p.postop==="compilato"?"questionario compilato":""].join(" ").toLowerCase();
       if(hay.includes(q)) return true;
       return photosOf(p.id).some(f=>[f.area,...(f.tags||[])].join(" ").toLowerCase().includes(q));
   }); }
@@ -832,6 +846,10 @@ function renderPatient(){
       past.length?`<div class="stat-lab" style="margin-top:${fut.length?"1rem":"0"}">Passati</div>`+past.map(a=>apptCard(a,{date:true,noLink:true})).join(""):""
     ].join("") : `<p class="muted" style="font-size:14px">Nessun appuntamento registrato per questo paziente.</p>`;
 
+  const nts=(p.journal||[]).slice().sort((a,b)=>((b.date||"")+(b.createdAt||"")).localeCompare((a.date||"")+(a.createdAt||"")));
+  $("#p-notes").innerHTML = nts.length ? nts.map(n=>`<div class="nt"><div class="nt-h"><span class="nt-d">${fmtDate(n.date)}</span><button class="chip" data-act="edit-note" data-arg="${esc(n.id)}">Modifica</button></div><div class="nt-t">${esc(n.text)}</div></div>`).join("")
+    : `<p class="muted" style="font-size:14px">Nessuna nota. Tocca "+ Nota" per scrivere considerazioni e informazioni aggiuntive su questo paziente.</p>`;
+
   const ph = patientPhotos();
   $("#p-count").textContent = ph.length===1 ? "1 foto" : ph.length + " foto";
   $("#sort-btn").textContent = S.sortDesc ? "Più recenti" : "Più vecchie";
@@ -914,6 +932,46 @@ function patientForm(p){
           btn.disabled=false;
           if(r){ closeSheet(); toast("Paziente creato"); go("patient", ref.id); }
         }
+      };
+    });
+}
+/* ---------- note personali del paziente ---------- */
+function noteForm(n){
+  const p=patient(S.pid); if(!p) return;
+  const edit=!!n; n=n||{date:todayISO(),text:""};
+  openSheet(`
+    <div class="sheet-h"><h3>${edit?"Modifica nota":"Nuova nota"}</h3><button class="iconbtn" data-x>${ICON.x}</button></div>
+    <form id="nf" autocomplete="off">
+      <div class="field"><label>Data</label><input class="input" type="date" name="date" value="${esc(n.date)}"></div>
+      <div class="field"><label>Note</label><textarea class="input" name="text" required maxlength="8000" rows="9" style="min-height:12rem" placeholder="Considerazioni, informazioni aggiuntive, cose da ricordare…">${esc(n.text)}</textarea></div>
+      <div class="sheet-f">
+        ${edit?`<button type="button" class="btn light plain" data-del style="margin-right:auto;color:var(--danger)">Elimina nota</button>`:""}
+        <button type="submit" class="btn">${edit?"Salva":"Aggiungi nota"}<span class="ic">${ICON.arrow}</span></button>
+      </div>
+    </form>`, b=>{
+      b.querySelector("[data-x]").onclick=closeSheet;
+      setTimeout(()=>b.querySelector("[name=text]").focus(),350);
+      const save=async list=>{
+        const ok=await safe(()=>S.root.collection("patients").doc(p.id).update({journal:list, updatedAt:new Date().toISOString()}).then(()=>true),"Salvataggio non riuscito.");
+        return ok;
+      };
+      const del=b.querySelector("[data-del]");
+      if(del) del.onclick=async()=>{
+        const c=await confirmSheet({title:"Eliminare la nota?", text:"La nota verrà cancellata. Non si può annullare."});
+        if(!c||!guardWrite()) return;
+        if(await save((patient(p.id).journal||[]).filter(x=>x.id!==n.id))) toast("Nota eliminata");
+      };
+      b.querySelector("#nf").onsubmit=async e=>{
+        e.preventDefault(); if(!guardWrite()) return;
+        const fd=new FormData(e.target); const text=String(fd.get("text")||"").trim(); if(!text) return;
+        const date=String(fd.get("date")||"")||todayISO(), now=new Date().toISOString();
+        const cur=(patient(p.id).journal||[]).slice();
+        let list;
+        if(edit) list=cur.map(x=>x.id===n.id?{...x,date,text,updatedAt:now}:x);
+        else list=[...cur,{id:"n"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),date,text,createdAt:now,updatedAt:now}];
+        const btn=e.target.querySelector("[type=submit]"); btn.disabled=true;
+        const ok=await save(list); btn.disabled=false;
+        if(ok){ closeSheet(); toast(edit?"Nota aggiornata":"Nota aggiunta"); }
       };
     });
 }
@@ -1432,6 +1490,8 @@ document.addEventListener("click", e=>{
   switch(t.dataset.act){
     case "new-patient": closeMenu(); if(guardWrite()) patientForm(); break;
     case "edit-patient": patientForm(patient(S.pid)); break;
+    case "new-note": if(guardWrite()) noteForm(); break;
+    case "edit-note": { const p=patient(S.pid); const n=p&&(p.journal||[]).find(x=>x.id===t.dataset.arg); if(n) noteForm(n); break; }
     case "focus-search": go("home"); setTimeout(()=>{ const q=$("#q"); q.scrollIntoView({behavior:"smooth",block:"center"}); q.focus({preventScroll:true}); },120); break;
     case "backup": backupSheet(); break;
     case "privacy": closeMenu(); openSheet(`
